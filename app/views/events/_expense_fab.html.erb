@@ -1,0 +1,10 @@
+<% if participants.any? %>
+  <%= link_to "+",
+              new_event_expense_path(event),
+              data: { turbo_frame: "modal" },
+              class: "fab-button" %>
+<% else %>
+  <button type="button" class="fab-button fab-button-disabled">
+    +
+  </button>
+<% end %>

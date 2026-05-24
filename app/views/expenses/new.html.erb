@@ -1,0 +1,32 @@
+<%= turbo_frame_tag "modal" do %>
+
+  <div
+    data-controller="modal"
+    class="fixed inset-0 bg-black/30 flex items-end justify-center z-50">
+
+    <div class="bg-white rounded-t-3xl w-full max-w-xl p-5 max-h-[90vh] overflow-y-auto">
+
+      <div class="w-12 h-1.5 bg-slate-300 rounded-full mx-auto mb-5"></div>
+
+      <div class="flex items-center justify-between mb-6">
+        <h1 class="text-xl font-semibold text-slate-900">
+          Добавить трату
+        </h1>
+
+        <%= link_to "✕",
+                    "#",
+                    data: {
+                      action: "click->modal#close"
+                    },
+                    class: "text-slate-400 text-xl" %>
+      </div>
+
+      <%= render "expenses/form",
+                 event: @event,
+                 expense: @expense,
+                 participants: @participants %>
+
+    </div>
+  </div>
+
+<% end %>

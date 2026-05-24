@@ -1,0 +1,65 @@
+<div id="<%= dom_id(settlement) %>">
+
+  <div class="settlement-card <%= 'settlement-card-active' if local_assigns[:active] %>">
+
+    <div class="settlement-main">
+
+      <div class="settlement-people">
+
+        <div class="avatar <%= participant_color(settlement.to_participant) %>">
+          <%= participant_initials(settlement.to_participant.name) %>
+        </div>
+
+        <div class="settlement-flow">
+
+          <div class="settlement-names">
+            <span><%= settlement.from_participant.name %></span>
+
+            <span class="settlement-arrow">→</span>
+
+            <span><%= settlement.to_participant.name %></span>
+          </div>
+
+          <div class="settlement-caption">
+            <% if local_assigns[:active] %>
+              Выбранный перевод
+            <% else %>
+              Другой перевод
+            <% end %>
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="settlement-amount">
+        <%= number_to_currency(
+              settlement.amount_cents / 100.0,
+              unit: "₽",
+              precision: 0
+            ) %>
+      </div>
+
+    </div>
+
+    <div class="settlement-actions">
+      <% if settlement.paid? %>
+        <div class="settlement-paid">
+          ✓ Деньги переведены
+        </div>
+
+        <%= button_to "Отменить подтверждение",
+                      unpay_settlement_path(settlement),
+                      method: :patch,
+                      class: "settlement-unpay-button" %>
+      <% else %>
+        <%= button_to "Деньги переведены",
+                      settlement_path(settlement),
+                      method: :patch,
+                      class: "settlement-pay-button" %>
+      <% end %>
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,83 @@
+<div id="settlements">
+  <% if event.confirmed? || event.settled? %>
+
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">
+          Переводы
+        </h2>
+
+        <p class="section-subtitle">
+          Кто кому переводит деньги
+        </p>
+      </div>
+    </div>
+
+    <% if settlements.any? %>
+      <div class="settlements-list">
+        <% settlements.each do |settlement| %>
+
+          <%= link_to balance_explanation_path(
+                        event.access_token,
+                        settlement.from_participant.id,
+                        settlement.to_participant.id
+                      ),
+                      class: "settlement-card-link" do %>
+
+            <div class="settlement-card">
+            <div class="settlement-main">
+              <div class="settlement-people">
+                <div class="avatar <%= participant_color(settlement.from_participant) %>">
+                  <%= participant_initials(settlement.from_participant.name) %>
+                </div>
+
+                <div class="settlement-flow">
+                  <div class="settlement-names">
+                    <span><%= settlement.from_participant.name %></span>
+                    <span class="settlement-arrow">→</span>
+                    <span><%= settlement.to_participant.name %></span>
+                  </div>
+
+                  <div class="settlement-caption">
+                    <% if settlement.paid? %>
+                      ✓ Деньги переведены
+                    <% else %>
+                      Нажмите, чтобы посмотреть расчёт
+                    <% end %>
+                  </div>
+                </div>
+              </div>
+
+              <div class="settlement-amount">
+                <%= number_to_currency(
+                      settlement.amount_cents / 100.0,
+                      unit: "₽",
+                      precision: 0
+                    ) %>
+              </div>
+            </div>
+          <% end %>
+          </div>
+
+
+        <% end %>
+      </div>
+
+    <% else %>
+
+      <div class="empty-balance">
+        <div class="empty-icon">💸</div>
+
+        <div class="empty-title">
+          Переводов нет
+        </div>
+
+        <div class="empty-text">
+          Все уже рассчитались.
+        </div>
+      </div>
+
+    <% end %>
+
+  <% end %>
+</div>

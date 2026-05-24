@@ -1,0 +1,86 @@
+<%= turbo_frame_tag "modal" do %>
+  <div data-controller="modal" class="fixed inset-0 bg-black/30 flex items-end justify-center z-50">
+    <div class="bg-white rounded-t-3xl w-full max-w-xl p-5 max-h-[90vh] overflow-y-auto">
+
+      <div class="w-12 h-1.5 bg-slate-300 rounded-full mx-auto mb-5"></div>
+
+      <div class="flex items-center justify-between mb-6">
+        <h1 class="text-xl font-semibold text-slate-900">
+          Изменить трату
+        </h1>
+
+        <%= link_to "✕",
+                    "#",
+                    data: {
+                      action: "click->modal#close"
+                    },
+                    class: "text-slate-400 text-xl" %>
+      </div>
+
+      <%= form_with model: [@event, @expense] do |f| %>
+        <div class="space-y-4">
+
+          <%= f.text_field :title,
+                           class: "w-full rounded-xl border border-slate-200 px-4 py-3" %>
+
+          <%= f.text_field :amount,
+                           value: @expense.amount_cents / 100.0,
+                           inputmode: "decimal",
+                           class: "w-full rounded-xl border border-slate-200 px-4 py-3" %>
+
+          <div>
+            <p class="text-sm text-slate-500 mb-2">Оплатил</p>
+
+            <div class="flex flex-wrap gap-2">
+              <% @participants.each do |participant| %>
+                <label class="participant-chip">
+                  <%= radio_button_tag "expense[payer_id]",
+                                       participant.id,
+                                       @expense.payer_id == participant.id %>
+
+                  <span><%= participant.name %></span>
+                </label>
+              <% end %>
+            </div>
+          </div>
+
+          <div>
+            <p class="text-sm text-slate-500 mb-2">
+              Кто участвовал
+            </p>
+
+            <div class="flex flex-wrap gap-2">
+              <% @participants.each do |participant| %>
+                <label class="participant-chip">
+                  <%= check_box_tag "expense[participant_ids][]",
+                                    participant.id,
+                                    @expense.participant_ids.include?(participant.id) %>
+
+                  <span><%= participant.name %></span>
+                </label>
+              <% end %>
+            </div>
+          </div>
+
+          <%= f.submit "Сохранить",
+                       class: "w-full rounded-xl bg-blue-500 text-white py-3 font-medium cursor-pointer" %>
+        </div>
+      <% end %>
+
+      <div class="mt-4">
+        <%= button_to "Удалить трату",
+                      event_expense_path(@event, @expense),
+                      method: :delete,
+                      form: {
+                        data: {
+                          controller: "removable"
+                        }
+                      },
+                      data: {
+                        action: "click->removable#remove"
+                      },
+                      class: "w-full rounded-xl border border-red-200 text-red-500 py-3 font-medium" %>
+      </div>
+    </div>
+  </div>
+<% end %>

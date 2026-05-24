@@ -1,0 +1,56 @@
+<%= turbo_frame_tag "modal" do %>
+  <div
+    data-controller="modal"
+    class="fixed inset-0 bg-black/30 flex items-end justify-center z-50">
+
+    <div class="bg-white rounded-t-3xl w-full max-w-xl p-5 max-h-[90vh] overflow-y-auto">
+      <div class="w-12 h-1.5 bg-slate-300 rounded-full mx-auto mb-5"></div>
+
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <p class="text-sm text-slate-400">Все участники</p>
+
+          <h1 class="text-xl font-semibold text-slate-900">
+            Участники
+          </h1>
+        </div>
+
+        <%= link_to "✕",
+                    "#",
+                    data: { action: "click->modal#close" },
+                    class: "text-slate-400 text-xl" %>
+      </div>
+
+      <div class="space-y-2">
+        <% @participants.each do |participant| %>
+          <div class="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3">
+            <%= link_to edit_event_participant_path(@event, participant),
+                        data: { turbo_frame: "modal" },
+                        class: "flex items-center gap-3 min-w-0" do %>
+
+              <div class="avatar <%= participant_color(participant) %>">
+                <%= participant_initials(participant.name) %>
+              </div>
+
+              <div class="min-w-0">
+                <div class="font-medium text-slate-900 truncate">
+                  <%= participant.name %>
+                </div>
+
+                <div class="text-sm text-slate-400">
+                  Что ел/пил
+                </div>
+              </div>
+            <% end %>
+
+            <%= button_to "×",
+                          event_participant_path(@event, participant),
+                          method: :delete,
+                          data: { turbo_confirm: "Удалить участника?" },
+                          class: "flex h-8 w-8 items-center justify-center rounded-full text-slate-400 hover:bg-red-50 hover:text-red-500" %>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+<% end %>

@@ -1,0 +1,87 @@
+<div class="app-screen">
+  <div class="app-container">
+    <div class="home-hero">
+      <%= image_tag "icons/android-192.png", class: "home-logo-image" %>
+
+      <h1 class="home-title">
+        Andi
+      </h1>
+
+      <p class="home-subtitle">
+        Совместные траты. Честные переводы.
+      </p>
+    </div>
+
+    <div class="home-card">
+      <h2 class="home-card-title">Создать событие</h2>
+
+      <%= form_with model: @event do |f| %>
+        <div class="home-form">
+          <%= f.text_field :title,
+                           placeholder: "Пикник, ужин, поездка...",
+                           class: "home-input" %>
+
+          <%= f.submit "Создать событие",
+                       class: "home-button" %>
+        </div>
+      <% end %>
+    </div>
+
+    <% if @my_events.any? %>
+      <div class="home-events">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Мои события</h2>
+            <p class="section-subtitle">События, созданные на этом устройстве</p>
+          </div>
+        </div>
+
+        <div class="home-events-list">
+          <% @my_events.each do |event| %>
+            <%= link_to event_share_path(event.access_token),
+                        class: "home-event-card" do %>
+
+              <div>
+                <div class="home-event-title">
+                  <%= event.title %>
+                </div>
+
+                <div class="home-event-meta">
+                  <%= event.participants.count %> участников · <%= event_status_label(event) %>
+                </div>
+              </div>
+
+              <div class="home-event-arrow">›</div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="home-features">
+      <div class="home-feature">
+        <div class="home-feature-icon">👥</div>
+        <div>
+          <div class="home-feature-title">Добавьте участников</div>
+          <div class="home-feature-text">Без регистрации и лишних шагов.</div>
+        </div>
+      </div>
+
+      <div class="home-feature">
+        <div class="home-feature-icon">🍕</div>
+        <div>
+          <div class="home-feature-title">Запишите траты</div>
+          <div class="home-feature-text">Отмечайте, кто участвовал в каждой покупке.</div>
+        </div>
+      </div>
+
+      <div class="home-feature">
+        <div class="home-feature-icon">✅</div>
+        <div>
+          <div class="home-feature-title">Подтвердите расчёт</div>
+          <div class="home-feature-text">Посмотрите, кто кому переводит деньги.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

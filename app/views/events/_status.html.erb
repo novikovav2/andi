@@ -1,0 +1,47 @@
+<div id="event_status">
+<div class="event-status-row">
+  <span class="event-status-pill
+      <%= if event.settled?
+                           "event-status-confirmed"
+          elsif event.confirmed?
+            "event-status-confirmed"
+          elsif event.unconfirmed?
+            "event-status-pending"
+          else
+            "event-status-draft"
+          end %>">
+    <%= event_status_label(event) %>
+  </span>
+</div>
+
+<% if event.settled? %>
+  <div class="state-banner state-banner-success">
+    <div class="state-banner-icon">✓</div>
+    <div>
+      <div class="state-banner-title">Событие завершено</div>
+      <div class="state-banner-text">Все переводы отмечены как оплаченные.</div>
+    </div>
+  </div>
+<% elsif event.confirmed? %>
+  <div class="state-banner state-banner-success">
+    <div class="state-banner-icon">✓</div>
+    <div>
+      <div class="state-banner-title">Расчёт подтверждён</div>
+      <div class="state-banner-text">Теперь можно переводить деньги.</div>
+    </div>
+  </div>
+<% end %>
+
+<% if event.unconfirmed? && event.expenses.any? %>
+  <div class="state-banner state-banner-warning">
+    <div class="state-banner-icon">⚠️</div>
+
+    <div>
+      <div class="state-banner-title">Расчёт изменился</div>
+      <div class="state-banner-text">
+        Проверьте траты перед подтверждением.
+      </div>
+    </div>
+  </div>
+<% end %>
+</div>

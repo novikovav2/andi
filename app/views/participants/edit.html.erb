@@ -1,0 +1,93 @@
+<%= turbo_frame_tag "modal" do %>
+  <div
+    data-controller="modal"
+    class="fixed inset-0 bg-black/30 flex items-end justify-center z-50">
+
+    <div class="bg-white rounded-t-3xl w-full max-w-xl p-5 max-h-[90vh] overflow-y-auto">
+      <div class="w-12 h-1.5 bg-slate-300 rounded-full mx-auto mb-5"></div>
+
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <p class="text-sm text-slate-400">Участник</p>
+
+          <h1 class="text-xl font-semibold text-slate-900">
+            <%= @participant.name %>
+          </h1>
+        </div>
+
+        <%= link_to "✕",
+                    "#",
+                    data: { action: "click->modal#close" },
+                    class: "text-slate-400 text-xl" %>
+      </div>
+
+
+      <%= form_with model: [@event, @participant],
+                    data: { controller: "checklist" } do |f| %>
+        <div class="mb-5">
+          <label class="text-sm text-slate-500">
+            Имя участника
+          </label>
+
+          <%= f.text_field :name,
+                           class: "mt-2 w-full rounded-xl border border-slate-200 px-4 py-3" %>
+        </div>
+
+        <% if @expenses.any? %>
+          <div class="flex gap-2 mb-4">
+            <button
+              type="button"
+              class="rounded-full bg-blue-50 text-blue-600 px-4 py-2 text-sm font-semibold"
+              data-action="click->checklist#selectAll">
+              Участвовал во всех
+            </button>
+            <button
+              type="button"
+              class="rounded-full bg-slate-100 text-slate-500 px-4 py-2 text-sm font-semibold"
+              data-action="click->checklist#clearAll">
+              Не участвовал
+            </button>
+          </div>
+          <div class="space-y-2 mb-5">
+            <% @expenses.each do |expense| %>
+              <label class="block">
+                <%= check_box_tag "participant[expense_ids][]",
+                                  expense.id,
+                                  expense.participant_ids.include?(@participant.id),
+                                  class: "peer hidden",
+                                  data: { checklist_target: "checkbox" }%>
+
+                <div class="rounded-xl bg-slate-50 px-4 py-3 cursor-pointer transition peer-checked:bg-blue-50 peer-checked:ring-2 peer-checked:ring-blue-400">
+                  <div class="flex items-center justify-between gap-4">
+                    <div>
+                      <div class="font-medium text-slate-900">
+                        🍔 <%= expense.title %>
+                      </div>
+
+                      <div class="text-sm text-slate-400">
+                        Paid by <%= expense.payer.name %> ·
+                        <%= number_to_currency(expense.amount_cents / 100.0, unit: "₽", precision: 0) %>
+                      </div>
+                    </div>
+
+                    <div class="text-sm font-medium text-blue-500 opacity-0 peer-checked:opacity-100">
+                      ✓
+                    </div>
+                  </div>
+                </div>
+              </label>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="rounded-2xl bg-slate-50 p-6 text-center text-slate-400 mb-5">
+            Трат пока нет
+          </div>
+        <% end %>
+
+        <%= f.submit "Сохранить",
+                     class: "w-full rounded-xl bg-blue-500 text-white py-3 font-medium cursor-pointer" %>
+      <% end %>
+
+    </div>
+  </div>
+<% end %>

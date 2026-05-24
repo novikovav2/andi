@@ -1,0 +1,55 @@
+<div class="min-h-screen bg-slate-50 px-4 py-6">
+  <div class="max-w-xl mx-auto">
+    <div class="mb-6">
+      <%= link_to "← Назад к событию", event_share_path(@event.access_token), class: "text-blue-500" %>
+    </div>
+
+    <div class="mb-6">
+      <h1 class="text-2xl font-semibold text-slate-900">
+        Переводы
+      </h1>
+
+      <p class="text-sm text-slate-400">
+        Рекомендуемые переводы для <%= @event.title %>
+      </p>
+    </div>
+
+    <% if @settlements.any? %>
+      <div class="space-y-3">
+        <% @settlements.each do |settlement| %>
+          <div class="bg-white rounded-2xl shadow-sm p-4">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="font-medium text-slate-900">
+                  <%= settlement.from_participant.name %> → <%= settlement.to_participant.name %>
+                </div>
+
+                <div class="text-sm text-slate-400">
+                  Рекомендуемый перевод
+                </div>
+              </div>
+
+              <div class="font-semibold text-slate-900">
+                <%= number_to_currency(settlement[:amount_cents] / 100.0, unit: "₽", precision: 0) %>
+              </div>
+            </div>
+            <% if settlement.paid? %>
+            <span class="rounded-xl bg-green-100 text-green-700 px-4 py-2 text-sm font-medium">
+              Оплачено
+            </span>
+            <% else %>
+              <%= button_to "Отметить оплаченным",
+                            settlement_path(settlement),
+                            method: :patch,
+                            class: "rounded-xl bg-blue-500 text-white px-4 py-2 text-sm font-medium" %>
+            <% end %>
+          </div>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="bg-white rounded-2xl shadow-sm p-6 text-center text-slate-400">
+        Переводов нет
+      </div>
+    <% end %>
+  </div>
+</div>

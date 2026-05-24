@@ -1,0 +1,17 @@
+<div id="confirm_bar">
+  <% if event.expenses.any? && !event.confirmed? && !event.settled? %>
+    <div class="confirm-bar">
+      <div class="confirm-bar-inner">
+        <div>
+          <div class="confirm-title">Всё проверили?</div>
+          <div class="confirm-text">Подтвердите расчёт перед переводами.</div>
+        </div>
+
+        <%= button_to "Подтвердить",
+                      event_confirmation_path(event),
+                      method: :patch,
+                      class: "confirm-button" %>
+      </div>
+    </div>
+  <% end %>
+</div>

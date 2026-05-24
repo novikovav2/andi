@@ -1,0 +1,108 @@
+<div class="min-h-screen bg-slate-50 px-4 py-6">
+  <div class="max-w-xl mx-auto">
+    <div class="mb-6">
+      <%= link_to "← Back", event_share_path(@event.access_token), class: "text-blue-500" %>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-sm p-5 mb-6">
+      <p class="text-sm text-slate-400 mb-1">
+        Расчёт участника
+      </p>
+
+      <h1 class="text-2xl font-semibold text-slate-900">
+        <%= @from.name %>
+      </h1>
+
+      <div class="mt-4 text-3xl font-semibold text-slate-900">
+        <%= number_to_currency(@net_owed_cents / 100.0, unit: "₽", precision: 0) %>
+      </div>
+
+      <p class="text-sm text-slate-500 mt-3">
+        Это итоговая сумма, которую участник должен перевести по результатам всех трат.
+      </p>
+    </div>
+
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">
+          Кому перевести
+        </h2>
+
+        <p class="section-subtitle">
+          Итоговые переводы этого участника
+        </p>
+      </div>
+    </div>
+
+    <div class="settlements-list">
+      <% @outgoing_settlements.each do |settlement| %>
+        <%= render "balance_explanations/settlement",
+                   settlement: settlement,
+                   active: settlement.to_participant_id == @to.id %>
+      <% end %>
+    </div>
+
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">
+          Что вошло в расчёт
+        </h2>
+      </div>
+    </div>
+
+    <div class="space-y-3">
+      <% @rows.each do |row| %>
+        <% expense = row[:expense] %>
+
+        <div class="bg-white rounded-2xl shadow-sm p-4">
+          <div class="flex items-start justify-between gap-4">
+            <div>
+              <div class="font-medium text-slate-900">
+                🍔 <%= expense.title %>
+              </div>
+
+              <div class="text-sm text-slate-400 mt-1">
+                Оплатил <%= expense.payer.name %>
+              </div>
+
+              <div class="text-sm text-slate-500 mt-3">
+                Общая стоимость:
+                <span class="font-medium text-slate-700">
+                  <%= number_to_currency(expense.amount_cents / 100.0, unit: "₽", precision: 0) %>
+                </span>
+              </div>
+
+              <div class="text-sm text-slate-500 mt-1">
+                Разделили поровну между <%= row[:participants_count] %> участниками
+              </div>
+
+              <div class="flex flex-wrap gap-2 mt-3">
+                <% row[:participants].each do |participant| %>
+          <span class="rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-600">
+            <%= participant.name %>
+          </span>
+                <% end %>
+              </div>
+            </div>
+
+            <div class="text-right whitespace-nowrap">
+              <div class="font-semibold text-slate-900">
+                <%= number_to_currency(row[:amount_cents] / 100.0, unit: "₽", precision: 0) %>
+              </div>
+
+              <div class="text-xs text-slate-400 mt-1">
+                Доля в переводе
+              </div>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <% if @rows.empty? %>
+      <div class="bg-white rounded-2xl shadow-sm p-6 text-center text-slate-400">
+        Не удалось найти подробности расчёта.
+      </div>
+    <% end %>
+  </div>
+</div>
