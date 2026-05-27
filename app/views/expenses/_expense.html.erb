@@ -1,76 +1,40 @@
-<% highlight ||= false %>
-
 <div id="<%= dom_id(expense) %>">
   <%= link_to edit_event_expense_path(expense.event, expense),
               data: { turbo_frame: "modal" },
               class: "expense-card-link" do %>
 
     <div class="expense-card">
-
-      <div class="expense-main">
-
-        <div class="expense-icon">
-          <%= expense_icon(expense) %>
-        </div>
-
-        <div class="expense-content">
-
-          <div class="expense-top-row">
-            <div>
-              <div class="expense-title">
-                <%= expense.title %>
-              </div>
-
-              <div class="expense-meta">
-                Оплатил <%= expense.payer.name %>
-              </div>
-            </div>
-
-            <div class="expense-amount">
-              <%= number_to_currency(
-                    expense.amount_cents / 100.0,
-                    unit: "₽",
-                    precision: 0
-                  ) %>
-            </div>
+      <div class="expense-card-row">
+        <div class="expense-left">
+          <div class="expense-icon">
+            <%= expense_icon(expense) %>
           </div>
 
-          <div class="expense-bottom-row">
-
-            <div class="expense-participants">
-
-              <% visible_participants = expense.participants.limit(4) %>
-
-              <% visible_participants.each do |participant| %>
-                <div
-                  class="avatar avatar-small <%= participant_color(participant) %>">
-
-                  <%= participant_initials(participant.name) %>
-                </div>
-              <% end %>
-
-              <% hidden_count = expense.participants.count - visible_participants.count %>
-
-              <% if hidden_count > 0 %>
-                <div class="expense-hidden-count">
-                  +<%= hidden_count %>
-                </div>
-              <% end %>
-
+          <div class="expense-info">
+            <div class="expense-title">
+              <%= expense.title %>
             </div>
 
-            <div class="expense-split">
-              Разделили между:
-              <%= expense.participants.count %>
+            <div class="expense-meta">
+              Оплатил <%= expense.payer.name %>
             </div>
 
+            <div class="expense-meta-secondary">
+              Разделили между: <%= expense.participants.count %>
+            </div>
           </div>
-
         </div>
 
+        <div class="expense-right">
+          <div class="expense-amount">
+            <%= rubles(expense.amount_cents) %>
+          </div>
+
+          <div class="expense-chevron">
+            ›
+          </div>
+        </div>
       </div>
-
     </div>
-
   <% end %>
 </div>

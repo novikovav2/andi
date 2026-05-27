@@ -31,7 +31,7 @@ class ExpensesController < ApplicationController
           flash.now[:notice] = "Трата добавлена"
 
           render turbo_stream: [
-            turbo_stream.update("flash", partial: "shared/flash"),
+            turbo_stream.replace("flash", partial: "shared/flash"),
             turbo_stream.remove("empty_expenses"),
             turbo_stream.prepend("expenses", partial: "expenses/expense", locals: { expense: @expense }),
             *event_refresh_streams(@event),
@@ -49,7 +49,7 @@ class ExpensesController < ApplicationController
           flash.now[:alert] = "Введите название и сумму"
 
           render turbo_stream: [
-            turbo_stream.update("flash", partial: "shared/flash"),
+            turbo_stream.replace("flash", partial: "shared/flash"),
             turbo_stream.replace("new_expense", partial: "expenses/form", locals: { event: @event, expense: @expense, participants: @participants })
           ], status: :unprocessable_entity
         end
@@ -83,7 +83,7 @@ class ExpensesController < ApplicationController
 
       format.turbo_stream do
         render turbo_stream: [
-          turbo_stream.update("flash", partial: "shared/flash"),
+          turbo_stream.replace("flash", partial: "shared/flash"),
           *event_refresh_streams(@event),
           turbo_stream.update("modal", "")
         ]
@@ -94,8 +94,7 @@ class ExpensesController < ApplicationController
   def destroy
     flash.now[:notice] = "Трата удалена"
     @expense.destroy!
-
-    @event.update!(status: "unconfirmed")
+    @event.mark_unconfirmed!
 
     @balances = BalanceCalculator.new(@event).call
 
@@ -104,7 +103,7 @@ class ExpensesController < ApplicationController
 
       format.turbo_stream do
         render turbo_stream: [
-          turbo_stream.update("flash", partial: "shared/flash"),
+          turbo_stream.replace("flash", partial: "shared/flash"),
           turbo_stream.remove(@expense),
           *event_refresh_streams(@event),
           turbo_stream.update("modal", "")
@@ -164,7 +163,7 @@ class ExpensesController < ApplicationController
         flash.now[:alert] = "Выберите хотя бы одного участника"
 
         render turbo_stream: [
-          turbo_stream.update("flash", partial: "shared/flash")
+          turbo_stream.replace("flash", partial: "shared/flash")
         ], status: :unprocessable_entity
       end
     end

@@ -22,10 +22,13 @@ class Event < ApplicationRecord
   before_validation :set_access_token, on: :create
 
   def mark_unconfirmed!
-    return update!(status: "draft", locked_at: nil) if expenses.none?
-
     settlements.destroy_all
-    update!(status: "unconfirmed", locked_at: nil)
+
+    if expenses.none?
+      update!(status: "draft", locked_at: nil)
+    else
+      update!(status: "unconfirmed", locked_at: nil)
+    end
   end
 
   private

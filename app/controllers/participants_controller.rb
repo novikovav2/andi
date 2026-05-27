@@ -19,7 +19,7 @@ class ParticipantsController < ApplicationController
         flash.now[:notice] = "Участник добавлен"
 
         render turbo_stream: [
-          turbo_stream.update("flash", partial: "shared/flash"),
+          turbo_stream.replace("flash", partial: "shared/flash"),
           *event_refresh_streams(@event),
           turbo_stream.update("modal", "")
         ]
@@ -64,7 +64,7 @@ class ParticipantsController < ApplicationController
         flash.now[:notice] = "Участник обновлён"
 
         streams = [
-          turbo_stream.update("flash", partial: "shared/flash"),
+          turbo_stream.replace("flash", partial: "shared/flash"),
           *event_refresh_streams(@event),
           turbo_stream.update("modal", "")
         ]
@@ -96,7 +96,7 @@ class ParticipantsController < ApplicationController
           flash.now[:alert] = "Только организатор может удалять участников"
 
           render turbo_stream: [
-            turbo_stream.update("flash", partial: "shared/flash")
+            turbo_stream.replace("flash", partial: "shared/flash")
           ], status: :forbidden
         end
       end
@@ -114,7 +114,7 @@ class ParticipantsController < ApplicationController
           flash.now[:alert] = "Нельзя удалить участника, который оплачивал траты"
 
           render turbo_stream: [
-            turbo_stream.update("flash", partial: "shared/flash"),
+            turbo_stream.replace("flash", partial: "shared/flash"),
             turbo_stream.replace("settlements_link", partial: "events/settlements_link", locals: { event: @event }),
           ], status: :unprocessable_entity
         end
@@ -144,7 +144,7 @@ class ParticipantsController < ApplicationController
         flash.now[:notice] = "Участник удалён"
 
         streams = [
-          turbo_stream.update("flash", partial: "shared/flash"),
+          turbo_stream.replace("flash", partial: "shared/flash"),
           *event_refresh_streams(@event),
           turbo_stream.update("modal", "")
         ]

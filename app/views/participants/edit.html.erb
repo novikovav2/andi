@@ -6,13 +6,8 @@
     <div class="bg-white rounded-t-3xl w-full max-w-xl p-5 max-h-[90vh] overflow-y-auto">
       <div class="w-12 h-1.5 bg-slate-300 rounded-full mx-auto mb-5"></div>
 
-      <div class="flex items-center justify-between mb-6">
+      <div class="flex items-center justify-between">
         <div>
-          <p class="text-sm text-slate-400">Участник</p>
-
-          <h1 class="text-xl font-semibold text-slate-900">
-            <%= @participant.name %>
-          </h1>
         </div>
 
         <%= link_to "✕",
@@ -88,6 +83,32 @@
                      class: "w-full rounded-xl bg-blue-500 text-white py-3 font-medium cursor-pointer" %>
       <% end %>
 
+      <% if organizer?(@event) %>
+        <div class="participant-danger-zone">
+
+          <%= button_to "Удалить участника",
+                        event_participant_path(@event, @participant),
+                        method: :delete,
+
+                        form: {
+                          data: {
+                            controller: "confirm",
+                            confirm_title_value: "Удалить участника?",
+                            confirm_message_value: "Участник будет удалён из события и расчётов.",
+                            confirm_confirm_text_value: "Удалить",
+                            confirm_cancel_text_value: "Отмена"
+                          }
+                        },
+
+                        data: {
+                          action: "click->confirm#ask"
+                        },
+
+                        class: "participant-delete-button" %>
+
+        </div>
+
     </div>
+    <% end %>
   </div>
 <% end %>

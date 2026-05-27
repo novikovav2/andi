@@ -27,7 +27,7 @@ class SettlementsController < ApplicationController
         flash.now[:notice] = "Перевод отмечен как оплаченный"
 
         render turbo_stream: [
-          turbo_stream.update("flash", partial: "shared/flash"),
+          turbo_stream.replace("flash", partial: "shared/flash"),
           turbo_stream.replace(
             @settlement,
             partial: "balance_explanations/settlement",
@@ -58,7 +58,7 @@ class SettlementsController < ApplicationController
         flash.now[:notice] = "Отметка оплаты отменена"
 
         render turbo_stream: [
-          turbo_stream.update("flash", partial: "shared/flash"),
+          turbo_stream.replace("flash", partial: "shared/flash"),
           turbo_stream.replace(
             @settlement,
             partial: "balance_explanations/settlement",

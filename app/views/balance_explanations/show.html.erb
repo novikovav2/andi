@@ -14,7 +14,7 @@
       </h1>
 
       <div class="mt-4 text-3xl font-semibold text-slate-900">
-        <%= number_to_currency(@net_owed_cents / 100.0, unit: "₽", precision: 0) %>
+        <%= rubles(@net_owed_cents) %>
       </div>
 
       <p class="text-sm text-slate-500 mt-3">
@@ -67,9 +67,9 @@
 
               <div class="text-sm text-slate-500 mt-3">
                 Общая стоимость:
-                <span class="font-medium text-slate-700">
-                  <%= number_to_currency(expense.amount_cents / 100.0, unit: "₽", precision: 0) %>
-                </span>
+                <div class="font-medium text-slate-700">
+                  <%= rubles(expense.amount_cents) %>
+                </div>
               </div>
 
               <div class="text-sm text-slate-500 mt-1">
@@ -87,7 +87,7 @@
 
             <div class="text-right whitespace-nowrap">
               <div class="font-semibold text-slate-900">
-                <%= number_to_currency(row[:amount_cents] / 100.0, unit: "₽", precision: 0) %>
+                <%= rubles(row[:amount_cents]) %>
               </div>
 
               <div class="text-xs text-slate-400 mt-1">

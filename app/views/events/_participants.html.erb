@@ -22,25 +22,6 @@
 
           <% end %>
 
-          <% if organizer?(event) %>
-            <%= button_to "×",
-                          event_participant_path(event, participant_item),
-                          method: :delete,
-                          form: {
-                            data: {
-                              controller: "confirm",
-                              confirm_title_value: "Удалить участника?",
-                              confirm_message_value: "Участник будет удалён из события и расчётов.",
-                              confirm_confirm_text_value: "Удалить",
-                              confirm_cancel_text_value: "Отмена"
-                            }
-                          },
-                          data: {
-                            action: "click->confirm#ask"
-                          },
-                          class: "absolute -top-1 -right-1 hidden group-hover:flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-white text-xs shadow" %>
-          <% end %>
-
         </div>
 
       <% end %>

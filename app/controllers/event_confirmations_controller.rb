@@ -25,7 +25,7 @@ class EventConfirmationsController < ApplicationController
         flash.now[:notice] = "Расчёт подтверждён"
 
         render turbo_stream: [
-          turbo_stream.update("flash", partial: "shared/flash"),
+          turbo_stream.replace("flash", partial: "shared/flash"),
           *event_refresh_streams(@event)
         ]
       end

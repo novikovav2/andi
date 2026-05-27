@@ -33,11 +33,7 @@
       </div>
 
       <div class="settlement-amount">
-        <%= number_to_currency(
-              settlement.amount_cents / 100.0,
-              unit: "₽",
-              precision: 0
-            ) %>
+        <%= rubles(settlement.amount_cents) %>
       </div>
 
     </div>

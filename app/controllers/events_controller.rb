@@ -45,7 +45,7 @@ class EventsController < ApplicationController
           flash.now[:notice] = "Событие обновлено"
 
           render turbo_stream: [
-            turbo_stream.update("flash", partial: "shared/flash"),
+            turbo_stream.replace("flash", partial: "shared/flash"),
             *event_refresh_streams(@event),
             turbo_stream.update("modal", "")
           ]
