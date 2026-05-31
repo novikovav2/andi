@@ -8,5 +8,6 @@ export default class extends Controller {
 
     this.titleTarget.value = event.currentTarget.dataset.expensePresetsTitle
     this.titleTarget.focus()
+    this.titleTarget.dispatchEvent(new Event("input", { bubbles: true }))
   }
 }
