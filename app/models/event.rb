@@ -2,6 +2,7 @@ class Event < ApplicationRecord
   has_many :settlements, dependent: :destroy
   has_many :expenses, dependent: :destroy
   has_many :participants, dependent: :destroy
+  belongs_to :user, optional: true
 
   validates :title, presence: true
   validates :access_token, presence: true, uniqueness: true

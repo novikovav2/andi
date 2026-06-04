@@ -1,7 +1,9 @@
 class EventsController < ApplicationController
-  before_action :set_event, only: [:edit, :update, :destroy]
-  before_action :require_organizer!, only: [:edit, :update, :destroy]
-  before_action :set_noindex, except: [:new]
+  before_action :set_event, only: [ :edit, :update, :destroy ]
+  before_action :require_organizer!, only: [ :edit, :update, :destroy ]
+  before_action :set_noindex, except: [ :new ]
+  before_action :require_user!, only: [ :claim ]
+  before_action :set_event, only: [ :edit, :update, :destroy, :claim ]
   def new
     @event = Event.new
     @my_events = Event.owned_by(current_organizer_token)
@@ -15,6 +17,7 @@ class EventsController < ApplicationController
   def create
     @event = Event.new(event_params)
     @event.organizer_token = current_organizer_token
+    @event.user = current_user if signed_in?
     if @event.save
       Analytics.track(
         "event_created",
@@ -39,7 +42,6 @@ class EventsController < ApplicationController
   end
 
   def edit
-
   end
 
   def update
@@ -73,6 +75,17 @@ class EventsController < ApplicationController
     @event.destroy!
 
     redirect_to root_path, notice: "Событие удалено"
+  end
+
+  def claim
+    unless organizer?(@event)
+      redirect_to event_share_path(@event.access_token), alert: "Только организатор может сохранить событие"
+      return
+    end
+
+    @event.update!(user: current_user)
+
+    redirect_to dashboard_path, notice: "Событие сохранено в аккаунт"
   end
 
   private

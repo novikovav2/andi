@@ -1,13 +1,13 @@
 Rails.application.routes.draw do
   root "events#new"
 
-  resources :events, only: [:new, :create, :edit, :update, :destroy]
+  resources :events, only: [ :new, :create, :edit, :update, :destroy ]
 
   get "/e/:access_token", to: "events#show", as: :event_share
 
   resources :events, only: [] do
-    resources :participants, only: [:create, :edit, :update, :destroy]
-    resources :expenses, only: [:new, :create, :edit, :update, :destroy]
+    resources :participants, only: [ :create, :edit, :update, :destroy ]
+    resources :expenses, only: [ :new, :create, :edit, :update, :destroy ]
     get "participants_sheet", to: "participants#sheet", as: :participants_sheet
   end
 
@@ -18,7 +18,7 @@ Rails.application.routes.draw do
       to: "balance_explanations#show",
       as: :balance_explanation
 
-  resources :settlements, only: [:update] do
+  resources :settlements, only: [ :update ] do
     patch :unpay, on: :member
   end
 
@@ -30,4 +30,10 @@ Rails.application.routes.draw do
   get "/razdelit-rashody-na-piknike", to: "seo_pages#picnic_expenses", as: :picnic_expenses
   get "/razdelit-rashody-na-vecherinke", to: "seo_pages#party_expenses", as: :party_expenses
   get "/kto-komu-skolko-dolzhen", to: "seo_pages#who_owes_whom", as: :who_owes_whom
+
+  resource :registration, only: [ :new, :create ]
+  resource :session, only: [ :new, :create, :destroy ]
+  get "/dashboard", to: "dashboard#index", as: :dashboard
+
+  patch "/events/:id/claim", to: "events#claim", as: :claim_event
 end

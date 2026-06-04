@@ -11,6 +11,14 @@
   </div>
 
   <div class="event-header-actions">
+    <% if signed_in? && organizer?(event) && event.user.nil? %>
+      <%= button_to "Сохранить",
+                    claim_event_path(event),
+                    method: :patch,
+                    form_class: "claim-event-form",
+                    class: "claim-event-button" %>
+    <% end %>
+
     <button
       type="button"
       class="share-icon-button"

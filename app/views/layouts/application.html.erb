@@ -62,9 +62,16 @@
     <%= render "shared/flash" %>
     <main class="app-screen">
       <div class="app-container">
-        <% unless current_page?(root_path) %>
-          <%= render "shared/app_brand" %>
-        <% end %>
+        <header class="flex items-center justify-between gap-4 mb-6">
+          <% if !current_page?(root_path) %>
+            <%= render "shared/app_brand" %>
+          <% else %>
+            <div></div>
+          <% end %>
+
+          <%= render "shared/user_nav" %>
+        </header>
+
         <%= yield %>
       </div>
     </main>

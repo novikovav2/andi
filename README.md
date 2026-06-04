@@ -1,24 +1,15 @@
-# README
+# Andi
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Rails-приложение для разделения расходов между участниками события.
 
-Things you may want to cover:
+## Требования
 
-* Ruby version
+- Ruby 3.3.11
+- PostgreSQL
 
-* System dependencies
+## Запуск
 
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+```bash
+bin/setup
+bin/dev
+```

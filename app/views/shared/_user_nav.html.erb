@@ -1,0 +1,20 @@
+<nav class="flex items-center gap-2 text-sm">
+  <% if signed_in? %>
+    <%= link_to "Мои мероприятия",
+                dashboard_path,
+                class: "px-3 py-2 rounded-xl bg-slate-100 text-slate-700 font-medium" %>
+
+    <%= button_to "Выйти",
+                  session_path,
+                  method: :delete,
+                  class: "px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 font-medium" %>
+  <% else %>
+    <%= link_to "Войти",
+                new_session_path,
+                class: "px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-600 font-medium" %>
+
+    <%= link_to "Зарегистрироваться",
+                new_registration_path,
+                class: "px-3 py-2 rounded-xl bg-blue-600 text-white font-semibold" %>
+  <% end %>
+</nav>

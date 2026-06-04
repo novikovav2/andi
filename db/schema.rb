@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_31_205027) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_04_194641) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -31,6 +31,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_31_205027) do
     t.string "status", default: "draft", null: false
     t.string "title", null: false
     t.datetime "updated_at", null: false
+    t.bigint "user_id"
+    t.index ["user_id"], name: "index_events_on_user_id"
   end
 
   create_table "expense_shares", force: :cascade do |t|
@@ -75,6 +77,17 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_31_205027) do
     t.index ["to_participant_id"], name: "index_settlements_on_to_participant_id"
   end
 
+  create_table "users", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "email", null: false
+    t.string "name"
+    t.string "password_digest", null: false
+    t.string "plan", default: "free", null: false
+    t.datetime "updated_at", null: false
+    t.index ["email"], name: "index_users_on_email", unique: true
+  end
+
+  add_foreign_key "events", "users"
   add_foreign_key "expense_shares", "expenses"
   add_foreign_key "expense_shares", "participants"
   add_foreign_key "expenses", "events"

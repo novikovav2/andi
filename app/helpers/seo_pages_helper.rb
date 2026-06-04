@@ -1,0 +1,2 @@
+module SeoPagesHelper
+end

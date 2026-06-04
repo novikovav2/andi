@@ -1,0 +1,2 @@
+class AnalyticsEvent < ApplicationRecord
+end

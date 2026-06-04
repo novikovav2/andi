@@ -1,0 +1,20 @@
+<% if !signed_in? && organizer?(event) && event.user.nil? %>
+  <div class="account-prompt">
+    <div>
+      <div class="account-prompt-title">Сохраните мероприятие в аккаунте</div>
+      <div class="account-prompt-text">
+        История, ссылка и расчеты останутся доступны после регистрации.
+      </div>
+    </div>
+
+    <div class="account-prompt-actions">
+      <%= link_to "Войти",
+                  new_session_path(return_to: event_share_path(event.access_token)),
+                  class: "account-prompt-link" %>
+
+      <%= link_to "Зарегистрироваться",
+                  new_registration_path(return_to: event_share_path(event.access_token)),
+                  class: "account-prompt-button" %>
+    </div>
+  </div>
+<% end %>

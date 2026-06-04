@@ -1,0 +1,54 @@
+<div class="max-w-3xl mx-auto">
+  <div class="flex items-start justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-3xl font-bold text-slate-900">Мои мероприятия</h1>
+      <p class="text-sm text-slate-500 mt-1">История событий, сохраненных в аккаунте.</p>
+    </div>
+
+    <%= link_to "Новое",
+                root_path,
+                class: "px-4 py-3 rounded-xl bg-blue-600 text-white font-semibold" %>
+  </div>
+
+  <% if @events.any? %>
+    <div class="space-y-3">
+      <% @events.each do |event| %>
+        <%= link_to event_share_path(event.access_token),
+                    class: "block bg-white rounded-2xl border border-slate-100 shadow-sm p-5" do %>
+          <div class="flex items-start justify-between gap-4">
+            <div class="min-w-0">
+              <div class="font-semibold text-slate-900 truncate"><%= event.title %></div>
+              <div class="text-sm text-slate-500 mt-1">
+                <%= l(event.created_at.to_date, format: :long) %>
+              </div>
+              <div class="text-sm text-slate-500 mt-1">
+                <%= event.participants_count %> участников ·
+                <%= rubles(event.total_expenses_cents) %> трат
+              </div>
+            </div>
+
+            <span class="event-status-pill
+              <%= if event.settled? || event.confirmed?
+                                             "event-status-confirmed"
+                  elsif event.unconfirmed?
+                    "event-status-pending"
+                  else
+                    "event-status-draft"
+                  end %>">
+                        <%= event_status_label(event) %>
+            </span>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 text-center">
+      <div class="text-lg font-semibold text-slate-900 mb-2">Пока нет мероприятий</div>
+      <p class="text-sm text-slate-500 mb-5">Создайте первое событие, и оно появится здесь.</p>
+
+      <%= link_to "Создать мероприятие",
+                  root_path,
+                  class: "inline-flex px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold" %>
+    </div>
+  <% end %>
+</div>

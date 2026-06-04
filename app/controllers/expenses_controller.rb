@@ -1,6 +1,6 @@
 class ExpensesController < ApplicationController
   before_action :set_event
-  before_action :set_expense, only: [:edit, :update, :destroy]
+  before_action :set_expense, only: [ :edit, :update, :destroy ]
   before_action :set_noindex
 
   def new

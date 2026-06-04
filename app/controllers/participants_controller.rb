@@ -1,10 +1,10 @@
 class ParticipantsController < ApplicationController
   before_action :set_event
-  before_action :set_participant, only: [:edit, :update, :destroy]
+  before_action :set_participant, only: [ :edit, :update, :destroy ]
   before_action :set_noindex
 
   def create
-    @event.participants.create!(participant_params)
+    participant = @event.participants.create!(participant_params)
 
     @participants = @event.participants.order(:created_at)
     @participant = Participant.new
@@ -12,7 +12,7 @@ class ParticipantsController < ApplicationController
 
     Analytics.track(
       "participant_added",
-      eventable: @participant
+      eventable: participant
     )
 
     respond_to do |format|
@@ -121,7 +121,7 @@ class ParticipantsController < ApplicationController
 
           render turbo_stream: [
             turbo_stream.replace("flash", partial: "shared/flash"),
-            turbo_stream.replace("settlements_link", partial: "events/settlements_link", locals: { event: @event }),
+            turbo_stream.replace("settlements_link", partial: "events/settlements_link", locals: { event: @event })
           ], status: :unprocessable_entity
         end
       end

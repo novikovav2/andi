@@ -1,5 +1,4 @@
 class BalanceCalculator
-
   def initialize(event)
     @event = event
   end
@@ -7,16 +6,16 @@ class BalanceCalculator
   def call
     balances = participant_balances
     debtors = balances.select { |_id, amount| amount.negative? }
-                      .map { |id, amount| [participant(id), -amount] }
+                      .map { |id, amount| [ participant(id), -amount ] }
     creditors = balances.select { |_id, amount| amount.positive? }
-                        .map { |id, amount| [participant(id), amount] }
+                        .map { |id, amount| [ participant(id), amount ] }
     settlements = []
     i = 0
     j = 0
     while i < debtors.length && j < creditors.length
       debtor, debt_amount = debtors[i]
       creditor, credit_amount = creditors[j]
-      amount = [debt_amount, credit_amount].min
+      amount = [ debt_amount, credit_amount ].min
       settlements << {
         from: debtor,
         to: creditor,
