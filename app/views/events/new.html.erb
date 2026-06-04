@@ -1,14 +1,16 @@
 <div class="app-screen">
   <div class="app-container">
     <div class="home-hero">
-      <%= image_tag "icons/android-192.png", class: "home-logo-image" %>
+      <%= image_tag "icons/android-192.png", class: "home-logo-image", alt: "Анди" %>
+      <div class="home-brand">Анди</div>
 
       <h1 class="home-title">
-        Анди
+        Разделите расходы <br>
+        между друзьями справедливо
       </h1>
 
       <p class="home-subtitle">
-        Совместные траты. Честные переводы.
+        Создайте событие, добавьте участников и траты. Анди рассчитает, кто кому сколько должен после поездки, пикника, вечеринки или корпоратива.
       </p>
     </div>
 
@@ -58,30 +60,82 @@
       </div>
     <% end %>
 
-    <div class="home-features">
-      <div class="home-feature">
-        <div class="home-feature-icon">👥</div>
-        <div>
-          <div class="home-feature-title">Добавьте участников</div>
-          <div class="home-feature-text">Без регистрации и лишних шагов.</div>
-        </div>
-      </div>
+    <div class="home-use-cases">
+      <h2 class="home-section-title">🎉 Где пригодится Анди</h2>
 
-      <div class="home-feature">
-        <div class="home-feature-icon">🍕</div>
-        <div>
-          <div class="home-feature-title">Запишите траты</div>
-          <div class="home-feature-text">Отмечайте, кто участвовал в каждой покупке.</div>
+      <div class="home-use-case-grid">
+        <div class="home-use-case">
+          <div class="home-use-case-icon">🏕️</div>
+          <div>
+            <div class="home-use-case-title">Поездки и путешествия</div>
+            <div class="home-use-case-text">
+              Когда один платит за жильё, другой за бензин, а третий за продукты.
+            </div>
+          </div>
         </div>
-      </div>
 
-      <div class="home-feature">
-        <div class="home-feature-icon">✅</div>
-        <div>
-          <div class="home-feature-title">Подтвердите расчёт</div>
-          <div class="home-feature-text">Посмотрите, кто кому переводит деньги.</div>
+        <div class="home-use-case">
+          <div class="home-use-case-icon">🍖</div>
+          <div>
+            <div class="home-use-case-title">Пикники и шашлыки</div>
+            <div class="home-use-case-text">
+              Если кто-то не ел мясо или не пил алкоголь.
+            </div>
+          </div>
+        </div>
+
+        <div class="home-use-case">
+          <div class="home-use-case-icon">🎂</div>
+          <div>
+            <div class="home-use-case-title">Дни рождения</div>
+            <div class="home-use-case-text">
+              Чтобы после праздника не считать вручную кто кому должен.
+            </div>
+          </div>
+        </div>
+
+        <div class="home-use-case">
+          <div class="home-use-case-icon">🏢</div>
+          <div>
+            <div class="home-use-case-title">Корпоративы</div>
+            <div class="home-use-case-text">
+              Для рабочих выездов и совместных мероприятий.
+            </div>
+          </div>
         </div>
       </div>
     </div>
+
+    <div class="home-how-it-works">
+      <h2 class="home-section-title">💡 Как это работает</h2>
+
+      <div class="home-steps">
+        <div class="home-step"><span>1</span>Создайте событие</div>
+        <div class="home-step"><span>2</span>Добавьте участников</div>
+        <div class="home-step"><span>3</span>Запишите покупки</div>
+        <div class="home-step"><span>4</span>Получите готовый расчёт</div>
+      </div>
+    </div>
+
+    <section class="home-seo-section">
+      <h2>❓ Частые вопросы</h2>
+
+      <h3>Как разделить расходы между друзьями?</h3>
+      <p>
+        Создайте событие, добавьте участников и внесите покупки. Для каждой траты можно указать,
+        кто в ней участвовал. После этого Анди рассчитает итоговые переводы.
+      </p>
+
+      <h3>Что делать, если кто-то не пил алкоголь или не участвовал в покупке?</h3>
+      <p>
+        При добавлении расхода можно выбрать только тех участников, между которыми нужно разделить конкретную покупку.
+      </p>
+
+      <h3>Как узнать, кто кому сколько должен?</h3>
+      <p>
+        После внесения расходов Анди сведет взаимные долги и покажет простой итоговый расчет:
+        кто, кому и сколько должен перевести.
+      </p>
+    </section>
   </div>
 </div>

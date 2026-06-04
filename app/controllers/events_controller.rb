@@ -1,15 +1,25 @@
 class EventsController < ApplicationController
   before_action :set_event, only: [:edit, :update, :destroy]
   before_action :require_organizer!, only: [:edit, :update, :destroy]
+  before_action :set_noindex, except: [:new]
   def new
     @event = Event.new
     @my_events = Event.owned_by(current_organizer_token)
+
+    set_meta_tags(
+      title: "Разделить расходы между друзьями",
+      description: "Анди поможет честно распределить расходы и рассчитать кто кому должен."
+    )
   end
 
   def create
     @event = Event.new(event_params)
     @event.organizer_token = current_organizer_token
     if @event.save
+      Analytics.track(
+        "event_created",
+        eventable: @event
+      )
       redirect_to event_share_path(@event.access_token)
     else
       render :new, status: :unprocessable_entity
@@ -79,5 +89,12 @@ class EventsController < ApplicationController
 
     redirect_to event_share_path(@event.access_token),
                 alert: "Только организатор может менять настройки события"
+  end
+
+  def set_noindex
+    response.set_header(
+      "X-Robots-Tag",
+      "noindex, nofollow"
+    )
   end
 end

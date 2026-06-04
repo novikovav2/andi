@@ -1,6 +1,7 @@
 class ParticipantsController < ApplicationController
   before_action :set_event
   before_action :set_participant, only: [:edit, :update, :destroy]
+  before_action :set_noindex
 
   def create
     @event.participants.create!(participant_params)
@@ -8,6 +9,11 @@ class ParticipantsController < ApplicationController
     @participants = @event.participants.order(:created_at)
     @participant = Participant.new
     @balances = BalanceCalculator.new(@event).call
+
+    Analytics.track(
+      "participant_added",
+      eventable: @participant
+    )
 
     respond_to do |format|
       format.html do
@@ -180,5 +186,12 @@ class ParticipantsController < ApplicationController
 
   def participant_params
     params.require(:participant).permit(:name)
+  end
+
+  def set_noindex
+    response.set_header(
+      "X-Robots-Tag",
+      "noindex, nofollow"
+    )
   end
 end

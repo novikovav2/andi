@@ -1,4 +1,6 @@
 class EventConfirmationsController < ApplicationController
+  before_action :set_noindex
+
   def update
     @event = Event.find(params[:event_id])
 
@@ -30,5 +32,14 @@ class EventConfirmationsController < ApplicationController
         ]
       end
     end
+  end
+
+  private
+
+  def set_noindex
+    response.set_header(
+      "X-Robots-Tag",
+      "noindex, nofollow"
+    )
   end
 end

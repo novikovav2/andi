@@ -1,0 +1,24 @@
+<div class="max-w-3xl mx-auto px-4 py-12">
+  <h1 class="text-3xl font-bold text-slate-900 mb-4">
+    <%= title %>
+  </h1>
+
+  <p class="text-lg text-slate-600 mb-8">
+    <%= lead %>
+  </p>
+
+  <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
+    <h2 class="text-xl font-semibold mb-3">Как это работает</h2>
+
+    <ol class="list-decimal list-inside space-y-2 text-slate-700">
+      <li>Создайте мероприятие.</li>
+      <li>Добавьте участников.</li>
+      <li>Укажите расходы и кто в них участвовал.</li>
+      <li>Получите расчет: кто кому сколько должен.</li>
+    </ol>
+  </div>
+
+  <%= link_to "Создать мероприятие",
+              root_path,
+              class: "inline-flex rounded-xl bg-blue-600 px-5 py-3 text-white font-semibold" %>
+</div>

@@ -1,4 +1,6 @@
 class BalanceExplanationsController < ApplicationController
+  before_action :set_noindex
+
   def show
     @event = Event.find_by!(access_token: params[:access_token])
     @from = @event.participants.find(params[:from_id])
@@ -20,5 +22,14 @@ class BalanceExplanationsController < ApplicationController
     @total_consumed_cents = @explanation[:total_consumed_cents]
     @total_paid_cents = @explanation[:total_paid_cents]
     @net_owed_cents = @explanation[:net_owed_cents]
+  end
+
+  private
+
+  def set_noindex
+    response.set_header(
+      "X-Robots-Tag",
+      "noindex, nofollow"
+    )
   end
 end

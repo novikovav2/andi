@@ -1,6 +1,7 @@
 class ExpensesController < ApplicationController
   before_action :set_event
   before_action :set_expense, only: [:edit, :update, :destroy]
+  before_action :set_noindex
 
   def new
     @expense = Expense.new
@@ -17,6 +18,14 @@ class ExpensesController < ApplicationController
     )
 
     if @expense.save
+      Analytics.track(
+        "expense_added",
+        eventable: @expense,
+        metadata: {
+          amount_cents: @expense.amount_cents
+        }
+      )
+
       sync_participants!
 
       @event.update!(status: "unconfirmed")
@@ -169,5 +178,12 @@ class ExpensesController < ApplicationController
     end
 
     false
+  end
+
+  def set_noindex
+    response.set_header(
+      "X-Robots-Tag",
+      "noindex, nofollow"
+    )
   end
 end

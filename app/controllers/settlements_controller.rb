@@ -1,4 +1,5 @@
 class SettlementsController < ApplicationController
+  before_action :set_noindex
   def index
     @event = Event.find_by!(access_token: params[:access_token])
     @settlements = @event.settlements.includes(:from_participant, :to_participant).order(:created_at)
@@ -16,6 +17,11 @@ class SettlementsController < ApplicationController
 
       event.update!(status: "settled")
     end
+
+    Analytics.track(
+      "settlement_paid",
+      eventable: @settlement
+    )
 
     respond_to do |format|
       format.html do
@@ -70,5 +76,13 @@ class SettlementsController < ApplicationController
         ]
       end
     end
+  end
+
+  private
+  def set_noindex
+    response.set_header(
+      "X-Robots-Tag",
+      "noindex, nofollow"
+    )
   end
 end
