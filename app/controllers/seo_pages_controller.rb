@@ -1,11 +1,4 @@
 class SeoPagesController < ApplicationController
-  def split_expenses
-    set_meta_tags(
-      title: "Разделить расходы между друзьями",
-      description: "Анди помогает честно разделить расходы между друзьями: кто что купил, кто что ел и пил, кто кому сколько должен."
-    )
-  end
-
   def trip_expenses
     set_meta_tags(
       title: "Разделить расходы в поездке",
@@ -29,8 +22,8 @@ class SeoPagesController < ApplicationController
 
   def who_owes_whom
     set_meta_tags(
-      title: "Кто кому сколько должен",
-      description: "Анди автоматически считает взаимные долги после общего мероприятия и показывает кто кому сколько должен перевести."
+      title: "Кто кому должен — рассчитать долги между друзьями",
+      description: "Анди помогает быстро рассчитать, кто кому должен после встречи, поездки, пикника или вечеринки. Добавьте расходы и получите готовый список переводов."
     )
   end
 end

@@ -9,8 +9,8 @@ class EventsController < ApplicationController
     @my_events = Event.owned_by(current_organizer_token)
 
     set_meta_tags(
-      title: "Разделить расходы между друзьями",
-      description: "Анди поможет честно распределить расходы и рассчитать кто кому должен."
+      title: "Разделить расходы без споров",
+      description: "Анди помогает разделить расходы в поездках, на пикниках, вечеринках и других мероприятиях. Добавьте расходы и получите готовый список переводов."
     )
   end
 

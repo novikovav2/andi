@@ -1,6 +1,17 @@
 require "test_helper"
 
 class EventsAuthTest < ActionDispatch::IntegrationTest
+  test "home page opens without authentication" do
+    get root_path
+
+    assert_response :success
+    assert_select "a.app-brand[href=?]", root_path
+    assert_select "h1", text: "Разделить расходы без споров"
+    assert_includes response.body, "Создать мероприятие"
+    assert_includes response.body, "Для поездок, пикников и вечеринок"
+    assert_includes response.body, "Почему удобно"
+  end
+
   test "guest creates event without user" do
     assert_difference "Event.count", 1 do
       post events_path, params: {

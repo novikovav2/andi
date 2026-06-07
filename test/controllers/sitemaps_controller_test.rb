@@ -15,6 +15,7 @@ class SitemapsControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "<loc>#{party_expenses_url}</loc>"
     assert_includes response.body, "<loc>http://www.example.com/party-expenses</loc>"
     assert_includes response.body, "<loc>#{who_owes_whom_url}</loc>"
+    assert_includes response.body, "<loc>http://www.example.com/who-owes-whom</loc>"
     assert_includes response.body, "<loc>#{privacy_url}</loc>"
     assert_includes response.body, "<loc>#{terms_url}</loc>"
 
@@ -28,6 +29,8 @@ class SitemapsControllerTest < ActionDispatch::IntegrationTest
     assert_match %r{<loc>#{picnic_expenses_url}</loc>\s*<lastmod>.*?</lastmod>\s*<changefreq>weekly</changefreq>\s*<priority>0.8</priority>}m,
                  response.body
     assert_match %r{<loc>#{party_expenses_url}</loc>\s*<lastmod>.*?</lastmod>\s*<changefreq>weekly</changefreq>\s*<priority>0.8</priority>}m,
+                 response.body
+    assert_match %r{<loc>#{who_owes_whom_url}</loc>\s*<lastmod>.*?</lastmod>\s*<changefreq>weekly</changefreq>\s*<priority>0.8</priority>}m,
                  response.body
 
     refute_includes response.body, "/events/"

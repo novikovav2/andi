@@ -63,11 +63,7 @@
     <main class="app-screen">
       <div class="app-container">
         <header class="flex items-center justify-between gap-4 mb-6">
-          <% if !current_page?(root_path) %>
-            <%= render "shared/app_brand" %>
-          <% else %>
-            <div></div>
-          <% end %>
+          <%= render "shared/app_brand" %>
 
           <%= render "shared/user_nav" %>
         </header>

@@ -50,4 +50,21 @@ class SeoPagesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Без регистрации"
     assert_includes response.body, "День рождения с друзьями"
   end
+
+  test "who owes whom page opens without authentication" do
+    get who_owes_whom_path
+
+    assert_response :success
+    assert_select "h1", text: "Посчитать, кто кому должен"
+  end
+
+  test "who owes whom page has conversion content" do
+    get who_owes_whom_path
+
+    assert_response :success
+    assert_includes response.body, "Создать мероприятие"
+    assert_includes response.body, "FAQ"
+    assert_includes response.body, "Без регистрации"
+    assert_includes response.body, "После встречи остались чеки и вопросы"
+  end
 end

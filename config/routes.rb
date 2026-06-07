@@ -27,13 +27,10 @@ Rails.application.routes.draw do
   get "/privacy", to: "pages#privacy", as: :privacy
   get "/terms", to: "pages#terms", as: :terms
 
-  get "/razdelit-rashody", to: "seo_pages#split_expenses", as: :split_expenses
-  get "/razdelit-rashody-v-poezdke", to: "seo_pages#trip_expenses", as: :trip_expenses
+  get "/trip-expenses", to: "seo_pages#trip_expenses", as: :trip_expenses
   get "/picnic-expenses", to: "seo_pages#picnic_expenses", as: :picnic_expenses
-  get "/razdelit-rashody-na-piknike", to: "seo_pages#picnic_expenses", as: :picnic_expenses_ru
   get "/party-expenses", to: "seo_pages#party_expenses", as: :party_expenses
-  get "/razdelit-rashody-na-vecherinke", to: "seo_pages#party_expenses", as: :party_expenses_ru
-  get "/kto-komu-skolko-dolzhen", to: "seo_pages#who_owes_whom", as: :who_owes_whom
+  get "/who-owes-whom", to: "seo_pages#who_owes_whom", as: :who_owes_whom
 
   resource :registration, only: [ :new, :create ]
   resource :session, only: [ :new, :create, :destroy ]
