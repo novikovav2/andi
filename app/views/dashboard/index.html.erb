@@ -14,29 +14,34 @@
     <div class="space-y-3">
       <% @events.each do |event| %>
         <%= link_to event_share_path(event.access_token),
-                    class: "block bg-white rounded-2xl border border-slate-100 shadow-sm p-5" do %>
-          <div class="flex items-start justify-between gap-4">
-            <div class="min-w-0">
-              <div class="font-semibold text-slate-900 truncate"><%= event.title %></div>
-              <div class="text-sm text-slate-500 mt-1">
-                <%= l(event.created_at.to_date, format: :long) %>
-              </div>
-              <div class="text-sm text-slate-500 mt-1">
-                <%= event.participants_count %> участников ·
-                <%= rubles(event.total_expenses_cents) %> трат
-              </div>
-            </div>
+                    class: "dashboard-event-card" do %>
+          <div class="dashboard-event-main">
+            <div class="dashboard-event-title"><%= event.title %></div>
 
-            <span class="event-status-pill
+            <span class="dashboard-event-status event-status-pill
               <%= if event.settled? || event.confirmed?
-                                             "event-status-confirmed"
+                    "event-status-confirmed"
                   elsif event.unconfirmed?
                     "event-status-pending"
                   else
                     "event-status-draft"
                   end %>">
-                        <%= event_status_label(event) %>
+              <%= event_status_label(event) %>
             </span>
+          </div>
+
+          <div class="dashboard-event-date">
+            <%= l(event.created_at.to_date, format: :long) %>
+          </div>
+
+          <div class="dashboard-event-footer">
+            <div class="dashboard-event-meta">
+              <span><%= event.participants_count %> участников</span>
+              <span>·</span>
+              <span><%= rubles(event.total_expenses_cents) %> трат</span>
+            </div>
+
+            <span class="dashboard-event-open">Открыть →</span>
           </div>
         <% end %>
       <% end %>

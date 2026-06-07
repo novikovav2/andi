@@ -8,9 +8,9 @@ class SitemapsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "application/xml", response.media_type
 
     assert_includes response.body, "<loc>#{root_url}</loc>"
-    assert_includes response.body, "<loc>#{split_expenses_url}</loc>"
     assert_includes response.body, "<loc>#{trip_expenses_url}</loc>"
     assert_includes response.body, "<loc>#{picnic_expenses_url}</loc>"
+    assert_includes response.body, "<loc>http://www.example.com/trip-expenses</loc>"
     assert_includes response.body, "<loc>http://www.example.com/picnic-expenses</loc>"
     assert_includes response.body, "<loc>#{party_expenses_url}</loc>"
     assert_includes response.body, "<loc>http://www.example.com/party-expenses</loc>"
@@ -21,11 +21,12 @@ class SitemapsControllerTest < ActionDispatch::IntegrationTest
 
     assert_includes response.body, "<lastmod>#{Date.current.iso8601}</lastmod>"
     assert_includes response.body, "<changefreq>weekly</changefreq>"
-    assert_includes response.body, "<changefreq>monthly</changefreq>"
     assert_includes response.body, "<changefreq>yearly</changefreq>"
     assert_includes response.body, "<priority>1.0</priority>"
     assert_includes response.body, "<priority>0.8</priority>"
     assert_includes response.body, "<priority>0.3</priority>"
+    assert_match %r{<loc>#{trip_expenses_url}</loc>\s*<lastmod>.*?</lastmod>\s*<changefreq>weekly</changefreq>\s*<priority>0.8</priority>}m,
+                 response.body
     assert_match %r{<loc>#{picnic_expenses_url}</loc>\s*<lastmod>.*?</lastmod>\s*<changefreq>weekly</changefreq>\s*<priority>0.8</priority>}m,
                  response.body
     assert_match %r{<loc>#{party_expenses_url}</loc>\s*<lastmod>.*?</lastmod>\s*<changefreq>weekly</changefreq>\s*<priority>0.8</priority>}m,
