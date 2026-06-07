@@ -10,7 +10,7 @@ class SitemapsController < ApplicationController
       { loc: root_url, priority: "1.0", changefreq: "weekly" },
       { loc: split_expenses_url, priority: "0.8", changefreq: "monthly" },
       { loc: trip_expenses_url, priority: "0.8", changefreq: "monthly" },
-      { loc: picnic_expenses_url, priority: "0.8", changefreq: "monthly" },
+      { loc: picnic_expenses_url, priority: "0.8", changefreq: "weekly" },
       { loc: party_expenses_url, priority: "0.8", changefreq: "monthly" },
       { loc: who_owes_whom_url, priority: "0.8", changefreq: "monthly" },
       { loc: privacy_url, priority: "0.3", changefreq: "yearly" },

@@ -29,7 +29,8 @@ Rails.application.routes.draw do
 
   get "/razdelit-rashody", to: "seo_pages#split_expenses", as: :split_expenses
   get "/razdelit-rashody-v-poezdke", to: "seo_pages#trip_expenses", as: :trip_expenses
-  get "/razdelit-rashody-na-piknike", to: "seo_pages#picnic_expenses", as: :picnic_expenses
+  get "/picnic-expenses", to: "seo_pages#picnic_expenses", as: :picnic_expenses
+  get "/razdelit-rashody-na-piknike", to: "seo_pages#picnic_expenses", as: :picnic_expenses_ru
   get "/razdelit-rashody-na-vecherinke", to: "seo_pages#party_expenses", as: :party_expenses
   get "/kto-komu-skolko-dolzhen", to: "seo_pages#who_owes_whom", as: :who_owes_whom
 
