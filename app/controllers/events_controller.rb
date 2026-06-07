@@ -30,7 +30,8 @@ class EventsController < ApplicationController
   end
 
   def show
-    @event = Event.find_by!(access_token: params[:access_token])
+    @event = Event.find_by(access_token: params[:access_token])
+    return render_not_found if @event.blank?
 
     @participants = @event.participants.order(:created_at)
     @expenses = @event.expenses.includes(:payer, :participants).order(created_at: :desc)

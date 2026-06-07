@@ -1,7 +1,9 @@
 class SettlementsController < ApplicationController
   before_action :set_noindex
   def index
-    @event = Event.find_by!(access_token: params[:access_token])
+    @event = Event.find_by(access_token: params[:access_token])
+    return render_not_found if @event.blank?
+
     @settlements = @event.settlements.includes(:from_participant, :to_participant).order(:created_at)
   end
 

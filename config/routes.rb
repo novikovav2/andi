@@ -37,4 +37,6 @@ Rails.application.routes.draw do
   get "/dashboard", to: "dashboard#index", as: :dashboard
 
   patch "/events/:id/claim", to: "events#claim", as: :claim_event
+
+  match "*unmatched", to: "application#not_found", via: :all
 end

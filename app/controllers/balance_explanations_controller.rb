@@ -2,7 +2,9 @@ class BalanceExplanationsController < ApplicationController
   before_action :set_noindex
 
   def show
-    @event = Event.find_by!(access_token: params[:access_token])
+    @event = Event.find_by(access_token: params[:access_token])
+    return render_not_found if @event.blank?
+
     @from = @event.participants.find(params[:from_id])
     @to = @event.participants.find(params[:to_id])
 

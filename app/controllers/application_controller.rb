@@ -5,6 +5,10 @@ class ApplicationController < ActionController::Base
   helper_method :current_user, :signed_in?
   helper_method :feature_access, :event_feature_access
 
+  def not_found
+    render_not_found
+  end
+
   private
 
   def current_organizer_token
@@ -58,6 +62,13 @@ class ApplicationController < ActionController::Base
     return if access.enabled?(feature)
 
     redirect_to dashboard_path, alert: "Эта возможность доступна на тарифе Pro"
+  end
+
+  def render_not_found
+    render file: Rails.root.join("public/404.html"),
+           layout: false,
+           status: :not_found,
+           content_type: "text/html"
   end
 
   def safe_return_path

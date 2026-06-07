@@ -100,6 +100,35 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     assert_match "Сохранить", response.body
   end
 
+  test "unknown event token returns not found" do
+    get event_share_path("wrong-token")
+
+    assert_response :not_found
+    assert_includes response.body, "Такой страницы нет"
+    assert_includes response.body, "/icons/android-192.png"
+  end
+
+  test "unknown event token returns not found for settlement pages" do
+    get event_settlements_path("wrong-token")
+
+    assert_response :not_found
+    assert_includes response.body, "Такой страницы нет"
+  end
+
+  test "unknown event token returns not found for balance explanation" do
+    get balance_explanation_path("wrong-token", 1, 2)
+
+    assert_response :not_found
+    assert_includes response.body, "Такой страницы нет"
+  end
+
+  test "unknown route returns not found page" do
+    get "/%D1%84/wrong-token"
+
+    assert_response :not_found
+    assert_includes response.body, "Такой страницы нет"
+  end
+
   test "organizer can open event settings" do
     post events_path, params: {
       event: {
