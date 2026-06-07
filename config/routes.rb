@@ -31,7 +31,8 @@ Rails.application.routes.draw do
   get "/razdelit-rashody-v-poezdke", to: "seo_pages#trip_expenses", as: :trip_expenses
   get "/picnic-expenses", to: "seo_pages#picnic_expenses", as: :picnic_expenses
   get "/razdelit-rashody-na-piknike", to: "seo_pages#picnic_expenses", as: :picnic_expenses_ru
-  get "/razdelit-rashody-na-vecherinke", to: "seo_pages#party_expenses", as: :party_expenses
+  get "/party-expenses", to: "seo_pages#party_expenses", as: :party_expenses
+  get "/razdelit-rashody-na-vecherinke", to: "seo_pages#party_expenses", as: :party_expenses_ru
   get "/kto-komu-skolko-dolzhen", to: "seo_pages#who_owes_whom", as: :who_owes_whom
 
   resource :registration, only: [ :new, :create ]

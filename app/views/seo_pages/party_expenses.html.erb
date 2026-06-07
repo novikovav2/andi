@@ -1,4 +1,175 @@
-<%= render "page",
-           title: "Разделить расходы на вечеринке",
-           lead: "После вечеринки часто непонятно, кто сколько должен вернуть. Анди помогает быстро посчитать общие расходы и не спорить в чате."
-%>
+<section class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-rose-50 via-white to-sky-50 border border-slate-200 px-5 py-5 sm:px-8 sm:py-8 lg:min-h-[430px] lg:flex lg:items-center lg:py-12">
+  <div class="-mx-5 sm:-mx-8 lg:absolute lg:inset-0 lg:mx-0">
+    <%= image_tag(
+          "seo/party-expenses-hero-mobile.png",
+          alt: "Друзья делят расходы на вечеринке",
+          width: 1834,
+          height: 858,
+          loading: "eager",
+          srcset: {
+            "seo/party-expenses-hero-mobile-960.png" => "960w",
+            "seo/party-expenses-hero-mobile.png" => "1834w"
+          },
+          sizes: "(min-width: 1024px) 0px, calc(100vw - 68px)",
+          class: "h-auto w-full rounded-2xl object-contain lg:hidden"
+        ) %>
+
+    <%= image_tag(
+          "seo/party-expenses-hero-safe-area.png",
+          alt: "Друзья делят расходы на вечеринке",
+          width: 1729,
+          height: 910,
+          loading: "eager",
+          srcset: {
+            "seo/party-expenses-hero-safe-area-960.png" => "960w",
+            "seo/party-expenses-hero-safe-area.png" => "1729w"
+          },
+          sizes: "(min-width: 1024px) 720px, 0px",
+          class: "hidden h-full w-full object-contain lg:block"
+        ) %>
+  </div>
+
+  <div class="relative z-10 mt-5 max-w-3xl lg:mt-0 lg:max-w-[460px] lg:rounded-2xl lg:bg-white/90 lg:p-6 lg:shadow-sm lg:ring-1 lg:ring-white/70">
+    <p class="mb-2 text-xs font-semibold uppercase text-rose-700 sm:text-sm lg:mb-3">Для вечеринок и дней рождения</p>
+
+    <h1 class="text-3xl font-extrabold leading-tight text-slate-950 sm:text-5xl lg:text-4xl">
+      Разделить расходы на вечеринке без споров
+    </h1>
+
+    <p class="mt-4 max-w-2xl text-base leading-7 text-slate-700 sm:text-lg sm:leading-8 lg:mt-5 lg:text-base lg:leading-7">
+      Кто-то заказал пиццу, кто-то купил напитки, кто-то оплатил торт или украшения.
+      Анди быстро посчитает, кто кому сколько должен после вечеринки.
+    </p>
+
+    <div class="mt-5 flex flex-col items-start gap-2 lg:mt-7 lg:gap-3">
+      <%= link_to "Создать мероприятие",
+                  root_path,
+                  class: "inline-flex min-h-13 w-full items-center justify-center whitespace-nowrap rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto lg:min-h-12" %>
+
+      <p class="text-sm font-medium leading-6 text-slate-600">
+        ✓ Без регистрации<br>
+        ✓ Работает с телефона
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="mt-12">
+  <div class="mb-6 max-w-2xl">
+    <p class="text-sm font-semibold uppercase text-rose-700">Пример из жизни</p>
+    <h2 class="mt-2 text-3xl font-bold text-slate-950">День рождения с друзьями</h2>
+    <p class="mt-3 text-lg leading-8 text-slate-700">
+      На вечеринке расходы часто распределяются неравномерно: один заказал еду, другой купил напитки, третий оплатил торт или украшения.
+    </p>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-2">
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="text-sm font-medium text-slate-500">Пицца</div>
+      <div class="mt-2 text-2xl font-bold text-slate-950">5 200 ₽</div>
+      <div class="mt-3 text-sm text-slate-600">Оплатил Сергей</div>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="text-sm font-medium text-slate-500">Напитки</div>
+      <div class="mt-2 text-2xl font-bold text-slate-950">3 400 ₽</div>
+      <div class="mt-3 text-sm text-slate-600">Оплатила Катя</div>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="text-sm font-medium text-slate-500">Торт</div>
+      <div class="mt-2 text-2xl font-bold text-slate-950">2 800 ₽</div>
+      <div class="mt-3 text-sm text-slate-600">Оплатил Андрей</div>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="text-sm font-medium text-slate-500">Украшения</div>
+      <div class="mt-2 text-2xl font-bold text-slate-950">1 200 ₽</div>
+      <div class="mt-3 text-sm text-slate-600">Оплатил Миша</div>
+    </div>
+  </div>
+
+  <div class="mt-6 rounded-2xl border border-blue-100 bg-blue-50 p-5 sm:p-6">
+    <p class="text-lg font-semibold leading-8 text-slate-950">
+      После добавления расходов Анди автоматически рассчитает, кто кому сколько должен.
+    </p>
+  </div>
+</section>
+
+<section class="mt-12 grid gap-5 md:grid-cols-2">
+  <div class="rounded-2xl border border-rose-100 bg-rose-50 p-6">
+    <h2 class="text-2xl font-bold text-slate-950">Без Анди</h2>
+    <ul class="mt-5 space-y-3 text-slate-700">
+      <li>вспоминать, кто что покупал;</li>
+      <li>считать в заметках или таблице;</li>
+      <li>спорить, кто участвовал в расходах;</li>
+      <li>просить переводы вручную.</li>
+    </ul>
+  </div>
+
+  <div class="rounded-2xl border border-emerald-100 bg-emerald-50 p-6">
+    <h2 class="text-2xl font-bold text-slate-950">С Анди</h2>
+    <ul class="mt-5 space-y-3 text-slate-700">
+      <li>добавить все расходы;</li>
+      <li>выбрать участников каждой покупки;</li>
+      <li>получить готовый список переводов;</li>
+      <li>отметить переводы как оплаченные.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="mt-12">
+  <h2 class="text-3xl font-bold text-slate-950">Как это работает</h2>
+
+  <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <ol class="list-decimal list-inside space-y-3 text-slate-700">
+      <li>Создайте мероприятие.</li>
+      <li>Добавьте гостей.</li>
+      <li>Запишите расходы.</li>
+      <li>Отметьте, кто участвовал в каждой покупке.</li>
+      <li>Получите готовый расчёт переводов.</li>
+    </ol>
+  </div>
+</section>
+
+<section class="mt-12">
+  <div class="mb-6">
+    <p class="text-sm font-semibold uppercase text-blue-700">FAQ</p>
+    <h2 class="mt-2 text-3xl font-bold text-slate-950">Частые вопросы</h2>
+  </div>
+
+  <div class="space-y-4">
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h3 class="text-lg font-semibold text-slate-950">Нужно ли регистрироваться?</h3>
+      <p class="mt-2 leading-7 text-slate-600">Нет. Мероприятие можно создать без регистрации.</p>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h3 class="text-lg font-semibold text-slate-950">Можно ли учитывать, что кто-то не пил алкоголь?</h3>
+      <p class="mt-2 leading-7 text-slate-600">Да. Для каждой покупки можно выбрать только тех гостей, кто участвовал в расходе.</p>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h3 class="text-lg font-semibold text-slate-950">Подходит ли для дней рождения?</h3>
+      <p class="mt-2 leading-7 text-slate-600">Да. Анди помогает разделить расходы на еду, напитки, торт, украшения и другие общие покупки.</p>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h3 class="text-lg font-semibold text-slate-950">Работает ли с телефона?</h3>
+      <p class="mt-2 leading-7 text-slate-600">Да. Все функции доступны прямо в браузере телефона.</p>
+    </div>
+  </div>
+</section>
+
+<section class="mt-12 rounded-2xl border border-slate-200 bg-slate-950 px-5 py-10 text-white sm:px-8">
+  <div class="max-w-2xl">
+    <h2 class="text-3xl font-bold">Попробуйте на своей вечеринке</h2>
+    <p class="mt-3 text-lg leading-8 text-slate-200">
+      Создайте мероприятие, добавьте расходы на еду, напитки и торт, а Анди посчитает переводы.
+    </p>
+
+    <%= link_to "Создать мероприятие",
+                root_path,
+                class: "mt-6 inline-flex items-center justify-center rounded-xl bg-white px-6 py-3 text-base font-semibold text-slate-950 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-slate-950" %>
+  </div>
+</section>

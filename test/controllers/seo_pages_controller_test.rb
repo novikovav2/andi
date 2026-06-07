@@ -33,4 +33,21 @@ class SeoPagesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Без регистрации"
     assert_includes response.body, "Компания собралась на шашлыки"
   end
+
+  test "party expenses page opens without authentication" do
+    get party_expenses_path
+
+    assert_response :success
+    assert_select "h1", text: "Разделить расходы на вечеринке без споров"
+  end
+
+  test "party expenses page has conversion content" do
+    get party_expenses_path
+
+    assert_response :success
+    assert_includes response.body, "Создать мероприятие"
+    assert_includes response.body, "FAQ"
+    assert_includes response.body, "Без регистрации"
+    assert_includes response.body, "День рождения с друзьями"
+  end
 end
