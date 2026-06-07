@@ -1,0 +1,397 @@
+require "test_helper"
+
+class ReceiptScansControllerTest < ActionDispatch::IntegrationTest
+  include ActiveJob::TestHelper
+
+  setup do
+    clear_enqueued_jobs
+    clear_performed_jobs
+
+    @user = User.create!(
+      email: "receipt-owner@example.com",
+      password: "password123",
+      password_confirmation: "password123",
+      plan: "pro"
+    )
+    @event = Event.create!(title: "Чек из кафе", status: "draft", organizer_token: "receipt-scan-test-token", user: @user)
+    @payer = @event.participants.create!(name: "Катя")
+    @friend = @event.participants.create!(name: "Сергей")
+  end
+
+  test "new shows upload form" do
+    get new_event_receipt_scan_path(@event)
+
+    assert_response :success
+    assert_select "h1", "Распознать чек"
+    assert_select "input[type=file][name='receipt_scan[image]']"
+    assert_select "input[type=submit][value='Загрузить чек']"
+  end
+
+  test "new redirects for free event owner" do
+    free_user = User.create!(
+      email: "free-receipt-owner@example.com",
+      password: "password123",
+      password_confirmation: "password123",
+      plan: "free"
+    )
+    event = Event.create!(
+      title: "Free чек",
+      status: "draft",
+      organizer_token: "free-receipt-scan-token",
+      user: free_user
+    )
+
+    get new_event_receipt_scan_path(event)
+
+    assert_redirected_to dashboard_path
+    assert_equal "Эта возможность доступна на тарифе Pro", flash[:alert]
+  end
+
+  test "create with image creates receipt scan, enqueues recognition job and redirects to show" do
+    assert_enqueued_with(job: ReceiptScanRecognitionJob) do
+      assert_difference -> { @event.receipt_scans.count }, 1 do
+        post event_receipt_scans_path(@event), params: {
+          receipt_scan: {
+            image: fixture_file_upload("receipt.jpg", "image/jpeg")
+          }
+        }
+      end
+    end
+
+    receipt_scan = @event.receipt_scans.last
+
+    assert_redirected_to event_receipt_scan_path(@event, receipt_scan)
+    assert_equal "Чек загружен. Распознавание началось.", flash[:notice]
+    assert_predicate receipt_scan.reload, :pending?
+    assert receipt_scan.image.attached?
+  end
+
+  test "show displays pending state" do
+    receipt_scan = create_receipt_scan(status: "pending")
+
+    get event_receipt_scan_path(@event, receipt_scan)
+
+    assert_response :success
+    assert_select "div", text: /Чек распознаётся/
+    assert_select "[data-controller='auto-refresh']"
+    assert_select "[data-auto-refresh-delay-value='3000']"
+    assert_select "p", "Страница обновится автоматически."
+    assert_select "input[type=submit][value='Добавить позиции в событие']", false
+  end
+
+  test "show displays processing state" do
+    receipt_scan = create_receipt_scan(status: "processing")
+
+    get event_receipt_scan_path(@event, receipt_scan)
+
+    assert_response :success
+    assert_select "div", text: /Чек распознаётся/
+    assert_select "[data-controller='auto-refresh']"
+    assert_select "[data-auto-refresh-delay-value='3000']"
+    assert_select "p", "Страница обновится автоматически."
+    assert_select "input[type=submit][value='Добавить позиции в событие']", false
+  end
+
+  test "show displays recognized test items" do
+    receipt_scan = create_receipt_scan(status: "ready", raw_result: {
+      "items" => [
+        { "title" => "Хлеб", "amount" => "120.00", "category" => "food" },
+        { "title" => "Сыр", "amount" => "350.00", "category" => "food" }
+      ]
+    })
+
+    get event_receipt_scan_path(@event, receipt_scan)
+
+    assert_response :success
+    assert_select "input[value='Хлеб']"
+    assert_select "input[value='Сыр']"
+    assert_select "p", text: "120 ₽"
+    assert_select "button", "Все"
+    assert_select "button", "Никто"
+    assert_select "p", "Кому делить эту позицию"
+    assert_select "input[name='items[0][participant_ids][]'][checked]"
+    assert_select "input[name='items[0][category]']", false
+    assert_select "input[type=submit][value='Добавить позиции в событие']"
+    assert_select "[data-controller='auto-refresh']", false
+  end
+
+  test "show displays payer radio chips when event has participants" do
+    receipt_scan = create_receipt_scan(status: "ready", raw_result: {
+      "items" => [
+        { "title" => "Хлеб", "amount" => "120.00", "category" => "food" }
+      ]
+    })
+
+    get event_receipt_scan_path(@event, receipt_scan)
+
+    assert_response :success
+    assert_select "p", "Кто оплатил чек?"
+    assert_select "select[name=payer_id]", false
+    assert_select "input[type=radio][name=payer_id][value=?][checked]", @payer.id.to_s
+    assert_select "input[type=radio][name=payer_id][value=?]", @friend.id.to_s
+  end
+
+  test "show displays failed status error" do
+    receipt_scan = create_receipt_scan(status: "failed", error: "Фото слишком размыто")
+
+    get event_receipt_scan_path(@event, receipt_scan)
+
+    assert_response :success
+    assert_select ".text-red-700", text: /Фото слишком размыто/
+    assert_select "a", "Загрузить другой чек"
+    assert_select "[data-controller='auto-refresh']", false
+  end
+
+  test "show hides submit when event has no participants" do
+    empty_event = Event.create!(title: "Пустое событие", status: "draft", organizer_token: "empty-receipt-token")
+    empty_event.update!(user: @user)
+    receipt_scan = empty_event.receipt_scans.build(status: "ready", raw_result: {
+      "items" => [
+        { "title" => "Хлеб", "amount" => "120.00", "category" => "food" }
+      ]
+    })
+    receipt_scan.image.attach(
+      io: Rails.root.join("test/fixtures/files/receipt.jpg").open,
+      filename: "receipt.jpg",
+      content_type: "image/jpeg"
+    )
+    receipt_scan.save!
+
+    get event_receipt_scan_path(empty_event, receipt_scan)
+
+    assert_response :success
+    assert_select "div", text: /Сначала добавьте участников события/
+    assert_select "input[type=submit][value='Добавить позиции в событие']", false
+  end
+
+  test "confirm creates expenses for selected enabled items" do
+    receipt_scan = create_receipt_scan(status: "ready", raw_result: {
+      "items" => [
+        { "title" => "Хлеб", "amount" => "120.00", "category" => "food" },
+        { "title" => "Сыр", "amount" => "350.00", "category" => "food" }
+      ]
+    })
+
+    assert_difference "Expense.count", 2 do
+      post confirm_event_receipt_scan_path(@event, receipt_scan), params: {
+        payer_id: @payer.id,
+        items: {
+          "0" => {
+            enabled: "1",
+            title: "Хлеб",
+            amount: "120.00",
+            category: "food",
+            participant_ids: [ @payer.id, @friend.id ]
+          },
+          "1" => {
+            enabled: "1",
+            title: "Сыр",
+            amount: "350.00",
+            category: "food",
+            participant_ids: [ @payer.id, @friend.id ]
+          }
+        }
+      }
+    end
+
+    assert_redirected_to event_share_path(@event.access_token)
+
+    expense = @event.expenses.find_by!(title: "Хлеб")
+    assert_equal @payer, expense.payer
+    assert_equal 12_000, expense.amount_cents
+    assert_equal @event.participants.pluck(:id).sort, expense.participant_ids.sort
+  end
+
+  test "confirm creates expense shares only for selected participants" do
+    receipt_scan = create_receipt_scan(status: "ready", raw_result: {
+      "items" => [
+        { "title" => "Хлеб", "amount" => "120.00", "category" => "food" }
+      ]
+    })
+
+    assert_difference "Expense.count", 1 do
+      post confirm_event_receipt_scan_path(@event, receipt_scan), params: {
+        payer_id: @payer.id,
+        items: {
+          "0" => {
+            enabled: "1",
+            title: "Хлеб",
+            amount: "120.00",
+            category: "food",
+            participant_ids: [ @friend.id ]
+          }
+        }
+      }
+    end
+
+    expense = @event.expenses.find_by!(title: "Хлеб")
+    assert_equal [ @friend.id ], expense.participant_ids
+  end
+
+  test "confirm does not create expenses without payer" do
+    receipt_scan = create_receipt_scan(status: "ready", raw_result: {
+      "items" => [
+        { "title" => "Хлеб", "amount" => "120.00", "category" => "food" }
+      ]
+    })
+
+    assert_no_difference "Expense.count" do
+      post confirm_event_receipt_scan_path(@event, receipt_scan), params: {
+        items: {
+          "0" => {
+            enabled: "1",
+            title: "Хлеб",
+            amount: "120.00",
+            category: "food",
+            participant_ids: [ @payer.id, @friend.id ]
+          }
+        }
+      }
+    end
+
+    assert_redirected_to event_receipt_scan_path(@event, receipt_scan)
+    assert_equal "Выберите плательщика из участников события", flash[:alert]
+  end
+
+  test "confirm does not create expenses with payer from another event" do
+    other_event = Event.create!(title: "Другое событие", status: "draft", organizer_token: "other-receipt-token")
+    other_payer = other_event.participants.create!(name: "Чужой участник")
+    receipt_scan = create_receipt_scan(status: "ready", raw_result: {
+      "items" => [
+        { "title" => "Хлеб", "amount" => "120.00", "category" => "food" }
+      ]
+    })
+
+    assert_no_difference "Expense.count" do
+      post confirm_event_receipt_scan_path(@event, receipt_scan), params: {
+        payer_id: other_payer.id,
+        items: {
+          "0" => {
+            enabled: "1",
+            title: "Хлеб",
+            amount: "120.00",
+            category: "food",
+            participant_ids: [ @payer.id, @friend.id ]
+          }
+        }
+      }
+    end
+
+    assert_redirected_to event_receipt_scan_path(@event, receipt_scan)
+    assert_equal "Выберите плательщика из участников события", flash[:alert]
+  end
+
+  test "confirm ignores disabled items" do
+    receipt_scan = create_receipt_scan(status: "ready", raw_result: {
+      "items" => [
+        { "title" => "Хлеб", "amount" => "120.00", "category" => "food" },
+        { "title" => "Сыр", "amount" => "350.00", "category" => "food" }
+      ]
+    })
+
+    assert_difference "Expense.count", 1 do
+      post confirm_event_receipt_scan_path(@event, receipt_scan), params: {
+        payer_id: @payer.id,
+        items: {
+          "0" => {
+            enabled: "1",
+            title: "Хлеб",
+            amount: "120.00",
+            category: "food",
+            participant_ids: [ @payer.id ]
+          },
+          "1" => {
+            enabled: "0",
+            title: "Сыр",
+            amount: "350.00",
+            category: "food"
+          }
+        }
+      }
+    end
+
+    assert @event.expenses.exists?(title: "Хлеб")
+    assert_not @event.expenses.exists?(title: "Сыр")
+  end
+
+  test "confirm does not create expenses when enabled item has no participants" do
+    receipt_scan = create_receipt_scan(status: "ready", raw_result: {
+      "items" => [
+        { "title" => "Хлеб", "amount" => "120.00", "category" => "food" }
+      ]
+    })
+
+    assert_no_difference "Expense.count" do
+      post confirm_event_receipt_scan_path(@event, receipt_scan), params: {
+        payer_id: @payer.id,
+        items: {
+          "0" => {
+            enabled: "1",
+            title: "Хлеб",
+            amount: "120.00",
+            category: "food",
+            participant_ids: []
+          }
+        }
+      }
+    end
+
+    assert_redirected_to event_receipt_scan_path(@event, receipt_scan)
+    assert_equal "Для каждой выбранной позиции отметьте участников", flash[:alert]
+  end
+
+  test "confirm ignores items with blank title or invalid amount" do
+    receipt_scan = create_receipt_scan(status: "ready", raw_result: {
+      "items" => [
+        { "title" => "", "amount" => "120.00", "category" => "food" },
+        { "title" => "Сыр", "amount" => "не сумма", "category" => "food" },
+        { "title" => "Сок", "amount" => "0", "category" => "food" }
+      ]
+    })
+
+    assert_no_difference "Expense.count" do
+      post confirm_event_receipt_scan_path(@event, receipt_scan), params: {
+        payer_id: @payer.id,
+        items: {
+          "0" => {
+            enabled: "1",
+            title: "",
+            amount: "120.00",
+            category: "food",
+            participant_ids: [ @payer.id, @friend.id ]
+          },
+          "1" => {
+            enabled: "1",
+            title: "Сыр",
+            amount: "не сумма",
+            category: "food",
+            participant_ids: [ @payer.id, @friend.id ]
+          },
+          "2" => {
+            enabled: "1",
+            title: "Сок",
+            amount: "0",
+            category: "food",
+            participant_ids: [ @payer.id, @friend.id ]
+          }
+        }
+      }
+    end
+
+    assert_redirected_to event_receipt_scan_path(@event, receipt_scan)
+    assert_equal "Не выбраны позиции для добавления", flash[:alert]
+  end
+
+  private
+
+  def create_receipt_scan(attributes = {})
+    receipt_scan = @event.receipt_scans.build(attributes.reverse_merge(status: "pending"))
+    receipt_scan.image.attach(
+      io: Rails.root.join("test/fixtures/files/receipt.jpg").open,
+      filename: "receipt.jpg",
+      content_type: "image/jpeg"
+    )
+    receipt_scan.save!
+    receipt_scan
+  end
+end

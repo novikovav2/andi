@@ -26,4 +26,22 @@ module ApplicationHelper
       format: "%n %u"
     )
   end
+
+  def receipt_amount(amount)
+    normalized = amount.to_s.strip.tr(",", ".").gsub(/\s+/, "")
+    decimal = BigDecimal(normalized)
+    cents = (decimal * 100).round.to_i
+    precision = cents % 100 == 0 ? 0 : 2
+
+    number_to_currency(
+      decimal,
+      unit: "₽",
+      precision:,
+      delimiter: " ",
+      separator: ".",
+      format: "%n %u"
+    )
+  rescue ArgumentError
+    "#{amount} ₽"
+  end
 end

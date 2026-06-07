@@ -1,0 +1,129 @@
+<div class="max-w-xl mx-auto">
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-slate-900">Распознать чек</h1>
+    <p class="text-sm text-slate-500 mt-2">Проверьте позиции перед добавлением в событие.</p>
+  </div>
+
+  <% if @receipt_scan.failed? %>
+    <div class="bg-red-50 rounded-2xl border border-red-100 p-5 text-red-700">
+      <div class="font-semibold">Не удалось распознать чек</div>
+      <div class="text-sm mt-1"><%= @receipt_scan.error.presence || "Попробуйте загрузить другое фото." %></div>
+    </div>
+
+    <div class="mt-4">
+      <%= link_to "Загрузить другой чек",
+                  new_event_receipt_scan_path(@event),
+                  class: "inline-flex rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white" %>
+    </div>
+  <% elsif @receipt_scan.ready? %>
+    <%= form_with url: confirm_event_receipt_scan_path(@event, @receipt_scan),
+                  method: :post,
+                  class: "space-y-4" do %>
+      <% if @participants.any? %>
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4">
+          <p class="mb-3 text-sm font-semibold text-slate-700">Кто оплатил чек?</p>
+
+          <div class="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+            <% @participants.each do |participant| %>
+              <label class="receipt-payer-chip">
+                <%= radio_button_tag :payer_id, participant.id, participant == @participants.first %>
+                <span><%= participant.name %></span>
+              </label>
+            <% end %>
+          </div>
+        </div>
+      <% else %>
+        <div class="rounded-2xl border border-amber-100 bg-amber-50 p-4 text-sm text-amber-800">
+          Сначала добавьте участников события, затем можно будет добавить позиции из чека.
+        </div>
+      <% end %>
+
+      <div class="space-y-3">
+        <% @items.each_with_index do |item, index| %>
+          <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-4"
+               data-controller="receipt-item-participants">
+            <div class="flex items-start gap-3">
+              <%= check_box_tag "items[#{index}][enabled]", "1", true, class: "mt-1 rounded border-slate-300" %>
+
+              <div class="grid min-w-0 w-full gap-3">
+                <div class="flex min-w-0 items-start justify-between gap-3">
+                  <p class="receipt-item-title">
+                    <%= item["title"] %>
+                  </p>
+
+                  <p class="shrink-0 whitespace-nowrap text-sm font-semibold text-blue-700">
+                    <%= receipt_amount(item["amount"]) %>
+                  </p>
+                </div>
+
+                <div class="grid gap-2">
+                  <%= text_field_tag "items[#{index}][title]",
+                                     item["title"],
+                                     aria: { label: "Название позиции" },
+                                     class: "w-full rounded-xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-900" %>
+
+                  <%= text_field_tag "items[#{index}][amount]",
+                                     item["amount"],
+                                     inputmode: "decimal",
+                                     aria: { label: "Сумма позиции" },
+                                     class: "w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-700" %>
+                </div>
+
+                <% if @participants.any? %>
+                  <div>
+                    <div class="mb-2 flex items-center justify-between gap-3">
+                      <p class="text-sm text-slate-500">Кому делить эту позицию</p>
+
+                      <div class="flex gap-2 text-xs font-semibold">
+                        <button type="button"
+                                class="text-blue-700"
+                                data-action="receipt-item-participants#selectAll">
+                          Все
+                        </button>
+                        <button type="button"
+                                class="text-slate-500"
+                                data-action="receipt-item-participants#selectNone">
+                          Никто
+                        </button>
+                      </div>
+                    </div>
+
+                    <div id="receipt-item-<%= index %>-participants" class="flex flex-wrap gap-2">
+                      <% @participants.each do |participant| %>
+                        <label class="participant-chip">
+                          <%= check_box_tag "items[#{index}][participant_ids][]",
+                                            participant.id,
+                                            true,
+                                            data: { receipt_item_participants_target: "checkbox" } %>
+                          <span><%= participant.name %></span>
+                        </label>
+                      <% end %>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            </div>
+          </div>
+        <% end %>
+      </div>
+
+      <% if @participants.any? %>
+        <%= submit_tag "Добавить позиции в событие",
+                       class: "mt-2 w-full rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white" %>
+      <% end %>
+    <% end %>
+  <% else %>
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 text-slate-600"
+         data-controller="auto-refresh"
+         data-auto-refresh-delay-value="3000">
+      <p>Чек распознаётся. Обновите страницу через несколько секунд.</p>
+      <p class="mt-2 text-sm text-slate-400">Страница обновится автоматически.</p>
+    </div>
+  <% end %>
+
+  <div class="mt-5">
+    <%= link_to "Назад к событию",
+                event_share_path(@event.access_token),
+                class: "inline-flex rounded-xl bg-slate-100 px-5 py-3 font-semibold text-slate-700" %>
+  </div>
+</div>

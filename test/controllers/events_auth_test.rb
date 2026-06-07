@@ -100,6 +100,49 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     assert_match "Сохранить", response.body
   end
 
+  test "receipt recognition button is hidden for guest event" do
+    event = Event.create!(
+      title: "Guest trip",
+      organizer_token: "guest-receipt-button-token"
+    )
+    event.participants.create!(name: "Катя")
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_no_match "Распознать чек", response.body
+  end
+
+  test "receipt recognition button is hidden for free event owner" do
+    user = create_user(plan: "free")
+    event = Event.create!(
+      title: "Free trip",
+      organizer_token: "free-receipt-button-token",
+      user:
+    )
+    event.participants.create!(name: "Катя")
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_no_match "Распознать чек", response.body
+  end
+
+  test "receipt recognition button is visible for pro event owner" do
+    user = create_user(plan: "pro")
+    event = Event.create!(
+      title: "Pro trip",
+      organizer_token: "pro-receipt-button-token",
+      user:
+    )
+    event.participants.create!(name: "Катя")
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_match "Распознать чек", response.body
+  end
+
   test "unknown event token returns not found" do
     get event_share_path("wrong-token")
 
@@ -175,11 +218,12 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
 
   private
 
-  def create_user
+  def create_user(plan: "free")
     User.create!(
-      email: "user@example.com",
+      email: "user-#{SecureRandom.hex(4)}@example.com",
       password: "password123",
-      password_confirmation: "password123"
+      password_confirmation: "password123",
+      plan:
     )
   end
 end

@@ -1,0 +1,32 @@
+<div class="max-w-xl mx-auto">
+  <div class="mb-6">
+    <h1 class="text-3xl font-bold text-slate-900">Распознать чек</h1>
+    <p class="text-sm text-slate-500 mt-2">Загрузите фото чека, а Анди подготовит список позиций.</p>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
+    <%= form_with model: [ @event, @receipt_scan ], class: "space-y-4" do |form| %>
+      <% if @receipt_scan.errors.any? %>
+        <div class="rounded-xl bg-red-50 border border-red-100 p-4 text-sm text-red-700">
+          <%= @receipt_scan.errors.full_messages.to_sentence %>
+        </div>
+      <% end %>
+
+      <div>
+        <%= form.label :image, "Фото чека", class: "block text-sm font-semibold text-slate-700 mb-2" %>
+        <%= form.file_field :image,
+                            accept: "image/*",
+                            class: "block w-full text-sm text-slate-600 file:mr-4 file:rounded-xl file:border-0 file:bg-blue-50 file:px-4 file:py-3 file:font-semibold file:text-blue-700" %>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-3">
+        <%= form.submit "Загрузить чек",
+                        class: "inline-flex justify-center rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white" %>
+
+        <%= link_to "Назад к событию",
+                    event_share_path(@event.access_token),
+                    class: "inline-flex justify-center rounded-xl bg-slate-100 px-5 py-3 font-semibold text-slate-700" %>
+      </div>
+    <% end %>
+  </div>
+</div>

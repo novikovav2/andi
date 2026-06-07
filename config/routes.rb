@@ -9,6 +9,11 @@ Rails.application.routes.draw do
     resources :participants, only: [ :create, :edit, :update, :destroy ]
     resources :expenses, only: [ :new, :create, :edit, :update, :destroy ]
     get "participants_sheet", to: "participants#sheet", as: :participants_sheet
+    resources :receipt_scans, only: [ :new, :create, :show ] do
+      member do
+        post :confirm
+      end
+    end
   end
 
   patch "/events/:event_id/confirm", to: "event_confirmations#update", as: :event_confirmation
