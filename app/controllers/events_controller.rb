@@ -1,9 +1,9 @@
 class EventsController < ApplicationController
-  before_action :set_event, only: [ :edit, :update, :destroy ]
+  before_action :set_event, only: [ :edit, :update, :destroy, :claim ]
   before_action :require_organizer!, only: [ :edit, :update, :destroy ]
   before_action :set_noindex, except: [ :new ]
   before_action :require_user!, only: [ :claim ]
-  before_action :set_event, only: [ :edit, :update, :destroy, :claim ]
+
   def new
     @event = Event.new
     @my_events = Event.owned_by(current_organizer_token)

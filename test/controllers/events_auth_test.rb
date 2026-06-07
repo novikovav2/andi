@@ -89,6 +89,32 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     assert_match "Сохранить", response.body
   end
 
+  test "organizer can open event settings" do
+    post events_path, params: {
+      event: {
+        title: "Guest trip"
+      }
+    }
+
+    event = Event.last
+
+    get edit_event_path(event)
+
+    assert_response :success
+    assert_match "Настройки события", response.body
+  end
+
+  test "non organizer can not open event settings" do
+    event = Event.create!(
+      title: "Someone else's trip",
+      organizer_token: "other-token"
+    )
+
+    get edit_event_path(event)
+
+    assert_redirected_to event_share_path(event.access_token)
+  end
+
   test "non organizer cannot claim event" do
     user = create_user
     event = Event.create!(

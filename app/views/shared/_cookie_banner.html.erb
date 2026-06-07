@@ -1,0 +1,14 @@
+<div class="cookie-banner" data-controller="cookie-notice">
+  <div class="cookie-banner-text">
+    Мы используем cookies для работы сервиса, авторизации и аналитики.
+    Продолжая пользоваться сайтом, вы соглашаетесь с использованием cookies.
+    <%= link_to "Подробнее", privacy_path %>
+  </div>
+
+  <button
+    type="button"
+    class="cookie-banner-button"
+    data-action="cookie-notice#accept">
+    Понятно
+  </button>
+</div>

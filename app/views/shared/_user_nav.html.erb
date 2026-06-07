@@ -1,5 +1,11 @@
 <nav class="flex items-center gap-2 text-sm">
   <% if signed_in? %>
+    <% if false %>
+    <span class="px-3 py-1 rounded-full <%= current_user.pro? ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500" %> font-semibold">
+      <%= current_user.pro? ? "Pro" : "Free" %>
+    </span>
+    <% end %>
+
     <%= link_to "Мои мероприятия",
                 dashboard_path,
                 class: "px-3 py-2 rounded-xl bg-slate-100 text-slate-700 font-medium" %>

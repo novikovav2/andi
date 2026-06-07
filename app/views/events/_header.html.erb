@@ -1,39 +1,39 @@
 <div id="event_header">
-<header class="event-header">
-  <div>
-    <h1 class="event-title">
-      <%= event.title %>
-    </h1>
+  <header class="event-header">
+    <div>
+      <h1 class="event-title">
+        <%= event.title %>
+      </h1>
 
-    <p class="event-subtitle">
-      <%= participants.count %> участников
-    </p>
-  </div>
+      <p class="event-subtitle">
+        <%= participants.count %> участников
+      </p>
+    </div>
 
-  <div class="event-header-actions">
-    <% if signed_in? && organizer?(event) && event.user.nil? %>
-      <%= button_to "Сохранить",
-                    claim_event_path(event),
-                    method: :patch,
-                    form_class: "claim-event-form",
-                    class: "claim-event-button" %>
-    <% end %>
+    <div class="event-header-actions">
+      <% if signed_in? && organizer?(event) && event.user.nil? %>
+        <%= button_to "Сохранить",
+                      claim_event_path(event),
+                      method: :patch,
+                      form_class: "claim-event-form",
+                      class: "claim-event-button" %>
+      <% end %>
 
-    <button
-      type="button"
-      class="share-icon-button"
-      data-controller="clipboard"
-      data-clipboard-text-value="<%= event_share_url(event.access_token) %>"
-      data-action="click->clipboard#copy">
-      ↗
-    </button>
+      <button
+        type="button"
+        class="share-icon-button"
+        data-controller="clipboard"
+        data-clipboard-text-value="<%= event_share_url(event.access_token) %>"
+        data-action="click->clipboard#copy">
+        ↗
+      </button>
 
-    <% if organizer?(event) %>
-      <%= link_to "⚙️",
-                  edit_event_path(event),
-                  data: { turbo_frame: "modal" },
-                  class: "settings-button" %>
-    <% end %>
-  </div>
-</header>
+      <% if organizer?(event) %>
+        <%= link_to "⚙️",
+                    edit_event_path(event),
+                    data: { turbo_frame: "modal" },
+                    class: "settings-button" %>
+      <% end %>
+    </div>
+  </header>
 </div>

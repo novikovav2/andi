@@ -1,4 +1,182 @@
-<%= render "page",
-  title: "Разделить расходы в поездке",
-  lead: "В совместной поездке один платит за жилье, другой за продукты, третий за бензин. Анди соберет все расходы и покажет, кто кому сколько должен."
-%>
+<section class="relative overflow-hidden rounded-2xl bg-gradient-to-br from-sky-50 via-white to-emerald-50 border border-slate-200 px-5 py-5 sm:px-8 sm:py-8 lg:min-h-[430px] lg:flex lg:items-center lg:py-12">
+  <div class="-mx-5 sm:-mx-8 lg:absolute lg:inset-0 lg:mx-0">
+    <%= image_tag(
+          "seo/trip-expenses-hero-mobile.png",
+          alt: "Друзья делят расходы в поездке",
+          width: 1717,
+          height: 916,
+          loading: "eager",
+          srcset: {
+            "seo/trip-expenses-hero-mobile-960.png" => "960w",
+            "seo/trip-expenses-hero-mobile.png" => "1717w"
+          },
+          sizes: "(min-width: 1024px) 0px, calc(100vw - 68px)",
+          class: "h-auto w-full rounded-2xl object-contain lg:hidden"
+        ) %>
+
+    <%= image_tag(
+          "seo/trip-expenses-hero-safe-area.png",
+          alt: "Друзья делят расходы в поездке",
+          width: 1536,
+          height: 1024,
+          loading: "eager",
+          srcset: {
+            "seo/trip-expenses-hero-safe-area-960.png" => "960w",
+            "seo/trip-expenses-hero-safe-area.png" => "1536w"
+          },
+          sizes: "(min-width: 1024px) 720px, 0px",
+          class: "hidden h-full w-full object-contain lg:block"
+        ) %>
+  </div>
+
+  <div class="relative z-10 mt-5 max-w-3xl lg:mt-0 lg:max-w-[460px] lg:rounded-2xl lg:bg-white/90 lg:p-6 lg:shadow-sm lg:ring-1 lg:ring-white/70">
+    <p class="mb-2 text-xs font-semibold uppercase text-sky-700 sm:text-sm lg:mb-3">Для поездок с друзьями</p>
+
+    <h1 class="text-3xl font-extrabold leading-tight text-slate-950 sm:text-5xl lg:text-4xl">
+      Разделить расходы в поездке без споров
+    </h1>
+
+    <p class="mt-4 max-w-2xl text-base leading-7 text-slate-700 sm:text-lg sm:leading-8 lg:mt-5 lg:text-base lg:leading-7">
+      Кто-то оплатил жильё, кто-то заправил машину, кто-то купил продукты. Анди быстро посчитает, кто кому сколько должен.
+    </p>
+
+    <div class="mt-5 flex flex-col items-start gap-2 lg:mt-7 lg:gap-3">
+      <%= link_to "Создать мероприятие",
+                  root_path,
+                  class: "inline-flex min-h-13 w-full items-center justify-center whitespace-nowrap rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 sm:w-auto lg:min-h-12" %>
+
+      <p class="text-sm font-medium leading-6 text-slate-600">
+        Без регистрации.<br>
+        Работает с телефона.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="mt-12">
+  <div class="mb-6 max-w-2xl">
+    <p class="text-sm font-semibold uppercase text-emerald-700">Пример из жизни</p>
+    <h2 class="mt-2 text-3xl font-bold text-slate-950">Компания поехала на выходные</h2>
+    <p class="mt-3 text-lg leading-8 text-slate-700">
+      За три дня накопились общие траты:
+    </p>
+  </div>
+
+  <div class="grid gap-4 md:grid-cols-3">
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="text-sm font-medium text-slate-500">Домик</div>
+      <div class="mt-2 text-2xl font-bold text-slate-950">24 000 ₽</div>
+      <div class="mt-3 text-sm text-slate-600">Оплатил Сергей</div>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="text-sm font-medium text-slate-500">Бензин</div>
+      <div class="mt-2 text-2xl font-bold text-slate-950">8 000 ₽</div>
+      <div class="mt-3 text-sm text-slate-600">Оплатил Андрей</div>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="text-sm font-medium text-slate-500">Продукты</div>
+      <div class="mt-2 text-2xl font-bold text-slate-950">12 000 ₽</div>
+      <div class="mt-3 text-sm text-slate-600">Оплатила Катя</div>
+    </div>
+  </div>
+
+  <div class="mt-6 rounded-2xl border border-blue-100 bg-blue-50 p-5 sm:p-6">
+    <h3 class="text-xl font-semibold text-slate-950">
+      Анди считает не просто общую сумму, а показывает конкретные переводы:
+    </h3>
+
+    <div class="mt-5 grid gap-3 md:grid-cols-3">
+      <div class="rounded-xl bg-white px-4 py-3 text-slate-800 shadow-sm">Катя → Сергей: <span class="font-semibold">3 200 ₽</span></div>
+      <div class="rounded-xl bg-white px-4 py-3 text-slate-800 shadow-sm">Андрей → Сергей: <span class="font-semibold">1 400 ₽</span></div>
+      <div class="rounded-xl bg-white px-4 py-3 text-slate-800 shadow-sm">Миша → Катя: <span class="font-semibold">900 ₽</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="mt-12 grid gap-5 md:grid-cols-2">
+  <div class="rounded-2xl border border-rose-100 bg-rose-50 p-6">
+    <h2 class="text-2xl font-bold text-slate-950">До Анди</h2>
+    <ul class="mt-5 space-y-3 text-slate-700">
+      <li>Вспоминаете, кто за что платил</li>
+      <li>Спорите, кто участвовал в расходе</li>
+      <li>Делите в таблице или в заметках</li>
+    </ul>
+  </div>
+
+  <div class="rounded-2xl border border-emerald-100 bg-emerald-50 p-6">
+    <h2 class="text-2xl font-bold text-slate-950">С Анди</h2>
+    <ul class="mt-5 space-y-3 text-slate-700">
+      <li>Добавляете расходы</li>
+      <li>Отмечаете участников каждой траты</li>
+      <li>Получаете готовый список переводов</li>
+    </ul>
+  </div>
+</section>
+
+<section class="mt-12">
+  <h2 class="text-3xl font-bold text-slate-950">Как это работает</h2>
+
+  <div class="mt-6 grid gap-4 md:grid-cols-3">
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div class="text-3xl" aria-hidden="true">👥</div>
+      <h3 class="mt-4 text-xl font-semibold text-slate-950">Добавьте участников</h3>
+      <p class="mt-2 leading-7 text-slate-600">Укажите всех, кто был в поездке или участвовал в общих тратах.</p>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div class="text-3xl" aria-hidden="true">💸</div>
+      <h3 class="mt-4 text-xl font-semibold text-slate-950">Запишите расходы</h3>
+      <p class="mt-2 leading-7 text-slate-600">Добавляйте жильё, бензин, продукты и выбирайте участников каждой траты.</p>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div class="text-3xl" aria-hidden="true">⚖️</div>
+      <h3 class="mt-4 text-xl font-semibold text-slate-950">Получите расчет</h3>
+      <p class="mt-2 leading-7 text-slate-600">Анди сведет долги и покажет готовый список переводов между участниками.</p>
+    </div>
+  </div>
+</section>
+
+<section class="mt-12">
+  <div class="mb-6">
+    <p class="text-sm font-semibold uppercase text-blue-700">FAQ</p>
+    <h2 class="mt-2 text-3xl font-bold text-slate-950">Частые вопросы</h2>
+  </div>
+
+  <div class="space-y-4">
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h3 class="text-lg font-semibold text-slate-950">Нужно ли регистрироваться?</h3>
+      <p class="mt-2 leading-7 text-slate-600">Нет. Мероприятие можно создать сразу, а потом при желании сохранить в личном кабинете.</p>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h3 class="text-lg font-semibold text-slate-950">Можно учитывать, что кто-то не участвовал в конкретной трате?</h3>
+      <p class="mt-2 leading-7 text-slate-600">Да. Для каждой траты можно выбрать только тех участников, кто в ней участвовал.</p>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h3 class="text-lg font-semibold text-slate-950">Можно открыть с телефона?</h3>
+      <p class="mt-2 leading-7 text-slate-600">Да. Анди рассчитан на использование с телефона прямо во время поездки.</p>
+    </div>
+
+    <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <h3 class="text-lg font-semibold text-slate-950">Это бесплатно?</h3>
+      <p class="mt-2 leading-7 text-slate-600">Базовый расчет расходов можно использовать бесплатно.</p>
+    </div>
+  </div>
+</section>
+
+<section class="mt-12 rounded-2xl border border-slate-200 bg-slate-950 px-5 py-10 text-white sm:px-8">
+  <div class="max-w-2xl">
+    <h2 class="text-3xl font-bold">Попробуйте на своей поездке</h2>
+    <p class="mt-3 text-lg leading-8 text-slate-200">
+      Создайте мероприятие, добавьте пару расходов и посмотрите, как Анди посчитает переводы.
+    </p>
+
+    <%= link_to "Создать мероприятие",
+                root_path,
+                class: "mt-6 inline-flex items-center justify-center rounded-xl bg-white px-6 py-3 text-base font-semibold text-slate-950 shadow-sm transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2 focus:ring-offset-slate-950" %>
+  </div>
+</section>

@@ -73,7 +73,12 @@
         </header>
 
         <%= yield %>
+        <%= render "shared/footer" %>
       </div>
     </main>
+
+    <% unless cookies[:andi_cookie_notice_accepted] == "true" %>
+      <%= render "shared/cookie_banner" %>
+    <% end %>
   </body>
 </html>

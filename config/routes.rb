@@ -24,6 +24,8 @@ Rails.application.routes.draw do
 
   get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   get "/sitemap.xml", to: "sitemaps#show", defaults: { format: :xml }
+  get "/privacy", to: "pages#privacy", as: :privacy
+  get "/terms", to: "pages#terms", as: :terms
 
   get "/razdelit-rashody", to: "seo_pages#split_expenses", as: :split_expenses
   get "/razdelit-rashody-v-poezdke", to: "seo_pages#trip_expenses", as: :trip_expenses

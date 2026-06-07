@@ -31,7 +31,7 @@ module MetaTagsHelper
           card: "summary_large_image",
           title: "Анди — справедливое разделение расходов",
           description: "Анди рассчитает кто кому сколько должен после общего мероприятия.",
-          image: "#{request.base_url}/og-image.png"
+          image: "#{request.base_url}/og-trip-expenses-hero-mobile.png"
         }
       }
     }

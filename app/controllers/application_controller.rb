@@ -3,6 +3,7 @@ class ApplicationController < ActionController::Base
 
   helper_method :current_organizer_token, :organizer?
   helper_method :current_user, :signed_in?
+  helper_method :feature_access, :event_feature_access
 
   private
 
@@ -11,6 +12,8 @@ class ApplicationController < ActionController::Base
   end
 
   def organizer?(event)
+    return false if event.blank?
+
     current_organizer_token.present? &&
       event.organizer_token.present? &&
       ActiveSupport::SecurityUtils.secure_compare(
@@ -40,6 +43,21 @@ class ApplicationController < ActionController::Base
     return if signed_in?
 
     redirect_to new_session_path(return_to: request.fullpath), alert: "Войдите в аккаунт"
+  end
+
+  def feature_access
+    @feature_access ||= FeatureAccess.new(current_user)
+  end
+
+  def event_feature_access(event)
+    FeatureAccess.for_event(event)
+  end
+
+  def require_feature!(feature, event: nil)
+    access = event.present? ? event_feature_access(event) : feature_access
+    return if access.enabled?(feature)
+
+    redirect_to dashboard_path, alert: "Эта возможность доступна на тарифе Pro"
   end
 
   def safe_return_path
