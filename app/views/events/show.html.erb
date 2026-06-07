@@ -15,35 +15,36 @@
         <%= render "events/settlements",
                    event: @event,
                    settlements: @event.settlements.includes(:from_participant, :to_participant) %>
-      </div>
-      <div class="section-header">
-        <div>
-          <h2 class="section-title">
-            Траты
-          </h2>
 
-          <p class="section-subtitle">
-            Общие покупки
-          </p>
-        </div>
-      </div>
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">
+              Траты
+            </h2>
 
-
-      <div id="expense_locked_state">
-        <%= render "events/expense_locked_state", participants: @participants %>
-      </div>
-
-      <div id="expenses" class="space-y-3">
-        <% if @expenses.any? %>
-          <%= render @expenses %>
-        <% else %>
-          <div id="empty_expenses" class="rounded-2xl bg-white shadow-sm p-6 text-center">
-            <p class="font-medium text-slate-700">Трат пока нет</p>
-            <p class="text-sm text-slate-400 mt-1">
-              Добавьте первую трату.
+            <p class="section-subtitle">
+              Общие покупки
             </p>
           </div>
-        <% end %>
+        </div>
+
+
+        <div id="expense_locked_state">
+          <%= render "events/expense_locked_state", participants: @participants %>
+        </div>
+
+        <div id="expenses" class="space-y-3">
+          <% if @expenses.any? %>
+            <%= render @expenses %>
+          <% else %>
+            <div id="empty_expenses" class="rounded-2xl bg-white shadow-sm p-6 text-center">
+              <p class="font-medium text-slate-700">Трат пока нет</p>
+              <p class="text-sm text-slate-400 mt-1">
+                Добавьте первую трату.
+              </p>
+            </div>
+          <% end %>
+        </div>
       </div>
 
     </div>

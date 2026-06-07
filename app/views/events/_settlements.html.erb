@@ -24,36 +24,36 @@
                       ),
                       class: "settlement-card-link" do %>
 
-            <div class="settlement-card">
-            <div class="settlement-main">
-              <div class="settlement-people">
-                <div class="avatar <%= participant_color(settlement.from_participant) %>">
-                  <%= participant_initials(settlement.from_participant.name) %>
-                </div>
-
-                <div class="settlement-flow">
-                  <div class="settlement-names">
-                    <span><%= settlement.from_participant.name %></span>
-                    <span class="settlement-arrow">→</span>
-                    <span><%= settlement.to_participant.name %></span>
+            <div class="settlement-card <%= settlement.paid? ? 'settlement-card-paid' : 'settlement-card-unpaid' %>">
+              <div class="settlement-main">
+                <div class="settlement-people">
+                  <div class="avatar <%= participant_color(settlement.from_participant) %>">
+                    <%= participant_initials(settlement.from_participant.name) %>
                   </div>
 
-                  <div class="settlement-caption">
-                    <% if settlement.paid? %>
-                      ✓ Деньги переведены
-                    <% else %>
-                      Нажмите, чтобы посмотреть расчёт
-                    <% end %>
+                  <div class="settlement-flow">
+                    <div class="settlement-names">
+                      <span><%= settlement.from_participant.name %></span>
+                      <span class="settlement-arrow">→</span>
+                      <span><%= settlement.to_participant.name %></span>
+                    </div>
+
+                    <div class="settlement-caption <%= settlement.paid? ? 'settlement-caption-paid' : 'settlement-caption-unpaid' %>">
+                      <% if settlement.paid? %>
+                        ✓ Деньги переведены
+                      <% else %>
+                        Нажмите, чтобы посмотреть расчёт
+                      <% end %>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div class="settlement-amount">
-                <%= rubles(settlement.amount_cents) %>
+                <div class="settlement-amount">
+                  <%= rubles(settlement.amount_cents) %>
+                </div>
               </div>
             </div>
           <% end %>
-          </div>
 
 
         <% end %>
