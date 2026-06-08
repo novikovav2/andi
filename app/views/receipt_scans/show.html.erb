@@ -114,10 +114,21 @@
     <% end %>
   <% else %>
     <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 text-slate-600"
-         data-controller="auto-refresh"
-         data-auto-refresh-delay-value="3000">
+         <% if @auto_refresh_receipt_scan %>
+           data-controller="auto-refresh"
+           data-auto-refresh-delay-value="3000"
+           data-auto-refresh-max-duration-value="60000"
+           data-auto-refresh-started-at-value="<%= @receipt_scan.created_at.iso8601 %>"
+         <% end %>>
       <p>Чек распознаётся. Обновите страницу через несколько секунд.</p>
-      <p class="mt-2 text-sm text-slate-400">Страница обновится автоматически.</p>
+      <p class="mt-2 text-sm text-slate-400 <%= "hidden" unless @auto_refresh_receipt_scan %>"
+         data-auto-refresh-target="status">
+        Страница обновится автоматически.
+      </p>
+      <p class="mt-2 text-sm font-medium text-amber-700 <%= "hidden" if @auto_refresh_receipt_scan %>"
+         data-auto-refresh-target="delayed">
+        Распознавание занимает больше времени, чем обычно.
+      </p>
     </div>
   <% end %>
 

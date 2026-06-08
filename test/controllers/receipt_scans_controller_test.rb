@@ -75,7 +75,10 @@ class ReceiptScansControllerTest < ActionDispatch::IntegrationTest
     assert_select "div", text: /Чек распознаётся/
     assert_select "[data-controller='auto-refresh']"
     assert_select "[data-auto-refresh-delay-value='3000']"
+    assert_select "[data-auto-refresh-max-duration-value='60000']"
+    assert_select "[data-auto-refresh-started-at-value]"
     assert_select "p", "Страница обновится автоматически."
+    assert_select "p.hidden", "Распознавание занимает больше времени, чем обычно."
     assert_select "input[type=submit][value='Добавить позиции в событие']", false
   end
 
@@ -88,8 +91,25 @@ class ReceiptScansControllerTest < ActionDispatch::IntegrationTest
     assert_select "div", text: /Чек распознаётся/
     assert_select "[data-controller='auto-refresh']"
     assert_select "[data-auto-refresh-delay-value='3000']"
+    assert_select "[data-auto-refresh-max-duration-value='60000']"
+    assert_select "[data-auto-refresh-started-at-value]"
     assert_select "p", "Страница обновится автоматически."
+    assert_select "p.hidden", "Распознавание занимает больше времени, чем обычно."
     assert_select "input[type=submit][value='Добавить позиции в событие']", false
+  end
+
+  test "show stops auto refresh after one minute of waiting" do
+    receipt_scan = create_receipt_scan(status: "processing")
+    receipt_scan.update_column(:created_at, 61.seconds.ago)
+
+    get event_receipt_scan_path(@event, receipt_scan)
+
+    assert_response :success
+    assert_select "div", text: /Чек распознаётся/
+    assert_select "[data-controller='auto-refresh']", false
+    assert_select "[data-auto-refresh-delay-value='3000']", false
+    assert_select "p.hidden", "Страница обновится автоматически."
+    assert_select "p", "Распознавание занимает больше времени, чем обычно."
   end
 
   test "show displays recognized test items" do
@@ -200,6 +220,7 @@ class ReceiptScansControllerTest < ActionDispatch::IntegrationTest
     assert_equal @payer, expense.payer
     assert_equal 12_000, expense.amount_cents
     assert_equal @event.participants.pluck(:id).sort, expense.participant_ids.sort
+    assert_equal 2, receipt_scan.reload.created_expenses_count
   end
 
   test "confirm creates expense shares only for selected participants" do
@@ -226,6 +247,7 @@ class ReceiptScansControllerTest < ActionDispatch::IntegrationTest
 
     expense = @event.expenses.find_by!(title: "Хлеб")
     assert_equal [ @friend.id ], expense.participant_ids
+    assert_equal 1, receipt_scan.reload.created_expenses_count
   end
 
   test "confirm does not create expenses without payer" do

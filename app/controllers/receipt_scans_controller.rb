@@ -1,4 +1,6 @@
 class ReceiptScansController < ApplicationController
+  AUTO_REFRESH_DURATION = 60.seconds
+
   before_action :set_event
   before_action :require_receipt_recognition_feature
   before_action :set_receipt_scan, only: [ :show, :confirm ]
@@ -23,6 +25,7 @@ class ReceiptScansController < ApplicationController
   def show
     @items = @receipt_scan.raw_result&.dig("items") || []
     @participants = @event.participants.order(:name)
+    @auto_refresh_receipt_scan = auto_refresh_receipt_scan?
   end
 
   def confirm
@@ -68,6 +71,8 @@ class ReceiptScansController < ApplicationController
       return
     end
 
+    @receipt_scan.update!(created_expenses_count: created_expenses.count)
+
     redirect_to event_share_path(@event.access_token), notice: "Позиции из чека добавлены"
   end
 
@@ -87,6 +92,13 @@ class ReceiptScansController < ApplicationController
 
   def receipt_scan_params
     params.require(:receipt_scan).permit(:image)
+  end
+
+  def auto_refresh_receipt_scan?
+    return false unless @receipt_scan.pending? || @receipt_scan.processing?
+    return true unless @receipt_scan.created_at
+
+    @receipt_scan.created_at > AUTO_REFRESH_DURATION.ago
   end
 
   def expense_attributes_for(item, payer:)

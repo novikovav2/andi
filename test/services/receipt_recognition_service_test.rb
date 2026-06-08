@@ -27,7 +27,8 @@ class ReceiptRecognitionServiceTest < ActiveSupport::TestCase
               { title: "Сыр", amount: "350.00" }
             ]
           })
-        )
+        ),
+        iam_token_provider: fake_iam_token_provider
       ).call
     end
 
@@ -45,7 +46,8 @@ class ReceiptRecognitionServiceTest < ActiveSupport::TestCase
       with_yandex_env do
         ReceiptRecognitionService.new(
           @receipt_scan,
-          http_client: fake_http_client(fake_response(500, { message: "OCR unavailable" }.to_json))
+          http_client: fake_http_client(fake_response(500, { message: "OCR unavailable" }.to_json)),
+          iam_token_provider: fake_iam_token_provider
         ).call
       end
     end
@@ -61,7 +63,8 @@ class ReceiptRecognitionServiceTest < ActiveSupport::TestCase
           http_client: fake_http_client(
             ocr_response("Хлеб 120.00"),
             gpt_text_response("not json")
-          )
+          ),
+          iam_token_provider: fake_iam_token_provider
         ).call
       end
     end
@@ -69,16 +72,25 @@ class ReceiptRecognitionServiceTest < ActiveSupport::TestCase
     assert_equal "YandexGPT вернул некорректный JSON", error.message
   end
 
-  test "raises clear error without Yandex env" do
-    without_yandex_env do
-      error = assert_raises(RuntimeError) do
+  test "uses token provider instead of reading IAM token directly from ENV" do
+    without_yandex_iam_token do
+      result = with_yandex_folder_env do
         ReceiptRecognitionService.new(
           @receipt_scan,
-          http_client: fake_http_client(ocr_response("Хлеб 120.00"))
+          http_client: fake_http_client(
+            ocr_response("Хлеб 120.00"),
+            gpt_response({
+              total: "120.00",
+              items: [
+                { title: "Хлеб", amount: "120.00" }
+              ]
+            })
+          ),
+          iam_token_provider: fake_iam_token_provider("provider-token")
         ).call
       end
 
-      assert_equal "YANDEX_CLOUD_IAM_TOKEN не задан", error.message
+      assert_equal [ { "title" => "Хлеб", "amount" => "120.0" } ], result["items"]
     end
   end
 
@@ -94,7 +106,8 @@ class ReceiptRecognitionServiceTest < ActiveSupport::TestCase
               { title: "Молоко", amount: "120,40" }
             ]
           })
-        )
+        ),
+        iam_token_provider: fake_iam_token_provider
       ).call
     end
 
@@ -116,7 +129,8 @@ class ReceiptRecognitionServiceTest < ActiveSupport::TestCase
               { title: "Хлеб", amount: "90.00" }
             ]
           })
-        )
+        ),
+        iam_token_provider: fake_iam_token_provider
       ).call
     end
 
@@ -131,7 +145,8 @@ class ReceiptRecognitionServiceTest < ActiveSupport::TestCase
           http_client: fake_http_client(
             ocr_response("Итого 120.00"),
             gpt_response({ items: [] })
-          )
+          ),
+          iam_token_provider: fake_iam_token_provider
         ).call
       end
     end
@@ -150,7 +165,11 @@ class ReceiptRecognitionServiceTest < ActiveSupport::TestCase
 
     error = assert_raises(RuntimeError) do
       with_yandex_env do
-        ReceiptRecognitionService.new(receipt_scan, http_client: fake_http_client).call
+        ReceiptRecognitionService.new(
+          receipt_scan,
+          http_client: fake_http_client,
+          iam_token_provider: fake_iam_token_provider
+        ).call
       end
     end
 
@@ -160,27 +179,25 @@ class ReceiptRecognitionServiceTest < ActiveSupport::TestCase
   private
 
   def with_yandex_env
-    original_iam_token = ENV["YANDEX_CLOUD_IAM_TOKEN"]
     original_folder_id = ENV["YANDEX_CLOUD_FOLDER_ID"]
-    ENV["YANDEX_CLOUD_IAM_TOKEN"] = "test-iam-token"
     ENV["YANDEX_CLOUD_FOLDER_ID"] = "test-folder-id"
 
     yield
   ensure
-    restore_env("YANDEX_CLOUD_IAM_TOKEN", original_iam_token)
     restore_env("YANDEX_CLOUD_FOLDER_ID", original_folder_id)
   end
 
-  def without_yandex_env
+  def with_yandex_folder_env(&)
+    with_yandex_env(&)
+  end
+
+  def without_yandex_iam_token
     original_iam_token = ENV["YANDEX_CLOUD_IAM_TOKEN"]
-    original_folder_id = ENV["YANDEX_CLOUD_FOLDER_ID"]
     ENV.delete("YANDEX_CLOUD_IAM_TOKEN")
-    ENV.delete("YANDEX_CLOUD_FOLDER_ID")
 
     yield
   ensure
     restore_env("YANDEX_CLOUD_IAM_TOKEN", original_iam_token)
-    restore_env("YANDEX_CLOUD_FOLDER_ID", original_folder_id)
   end
 
   def restore_env(key, value)
@@ -209,6 +226,14 @@ class ReceiptRecognitionServiceTest < ActiveSupport::TestCase
         @queue.shift || raise("unexpected request")
       end
     end.new(response_queue)
+  end
+
+  def fake_iam_token_provider(token = "test-iam-token")
+    Struct.new(:token) do
+      def call
+        token
+      end
+    end.new(token)
   end
 
   def ocr_response(text)

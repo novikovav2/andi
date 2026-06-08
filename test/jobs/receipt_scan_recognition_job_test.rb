@@ -23,6 +23,8 @@ class ReceiptScanRecognitionJobTest < ActiveJob::TestCase
     assert_nil @receipt_scan.error
     assert_equal "Тестовый магазин", @receipt_scan.raw_result["store"]
     assert_equal "Хлеб", @receipt_scan.raw_result["items"].first["title"]
+    assert_equal 1, @receipt_scan.recognized_items_count
+    assert_operator @receipt_scan.processing_time_ms, :>=, 0
   end
 
   test "marks receipt scan as failed when recognition fails" do

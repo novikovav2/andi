@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+export RAILS_ENV="${RAILS_ENV:-production}"
+
+echo "Migrating primary database..."
+bin/rails db:migrate:primary
+
+ensure_schema() {
+  local name="$1"
+  local table="$2"
+  local task="$3"
+  local record_class="$4"
+
+  echo "Checking ${name} database schema..."
+
+  if bin/rails runner "${record_class}.connection.data_source_exists?(\"${table}\") || exit(1)" >/dev/null; then
+    echo "${name} schema already exists."
+  else
+    echo "Loading ${name} schema with ${task}..."
+    bin/rails "${task}"
+  fi
+}
+
+ensure_schema "queue" "solid_queue_jobs" "db:schema:load:queue" "SolidQueue::Record"
+ensure_schema "cache" "solid_cache_entries" "db:schema:load:cache" "SolidCache::Record"
+ensure_schema "cable" "solid_cable_messages" "db:schema:load:cable" "SolidCable::Record"
+
+echo "Production database preparation complete."

@@ -16,9 +16,10 @@ class ReceiptRecognitionService
   GPT_URL = "https://llm.api.cloud.yandex.net/foundationModels/v1/completion"
   GPT_MODEL = "yandexgpt-lite"
 
-  def initialize(receipt_scan, http_client: Net::HTTP)
+  def initialize(receipt_scan, http_client: Net::HTTP, iam_token_provider: YandexIamTokenProvider.new)
     @receipt_scan = receipt_scan
     @http_client = http_client
+    @iam_token_provider = iam_token_provider
   end
 
   def call
@@ -35,7 +36,7 @@ class ReceiptRecognitionService
 
   private
 
-  attr_reader :receipt_scan, :http_client
+  attr_reader :receipt_scan, :http_client, :iam_token_provider
 
   def validate_image!
     raise "Добавьте фото чека" unless receipt_scan.image.attached?
@@ -46,7 +47,7 @@ class ReceiptRecognitionService
   end
 
   def validate_credentials!
-    raise "YANDEX_CLOUD_IAM_TOKEN не задан" if iam_token.blank?
+    raise "Yandex Cloud IAM token не получен" if iam_token.blank?
     raise "YANDEX_CLOUD_FOLDER_ID не задан" if folder_id.blank?
   end
 
@@ -202,7 +203,7 @@ class ReceiptRecognitionService
   end
 
   def iam_token
-    ENV["YANDEX_CLOUD_IAM_TOKEN"].to_s.strip
+    @iam_token ||= iam_token_provider.call.to_s.strip
   end
 
   def folder_id
