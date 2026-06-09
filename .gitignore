@@ -40,5 +40,4 @@
 .DS_Store
 .idea/
 
-yandex.key
 deploy.sh

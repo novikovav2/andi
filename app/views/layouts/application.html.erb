@@ -58,7 +58,7 @@
 
   </head>
 
-  <body>
+  <body class="<%= [ "#{controller_name.dasherize}-#{action_name.dasherize}", ("seo-page" if controller_path == "seo_pages") ].compact.join(" ") %>">
     <%= render "shared/flash" %>
     <main class="app-screen">
       <div class="app-container">

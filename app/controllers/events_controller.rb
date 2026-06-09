@@ -6,7 +6,14 @@ class EventsController < ApplicationController
 
   def new
     @event = Event.new
-    @my_events = Event.owned_by(current_organizer_token)
+    @device_events = Event.owned_by(current_organizer_token).active
+    @account_events = Event.none
+    @device_only_events = Event.none
+
+    if signed_in?
+      @account_events = current_user.events.active.order(created_at: :desc)
+      @device_only_events = @device_events.where.not(id: @account_events.select(:id))
+    end
 
     set_meta_tags(
       title: "Разделить расходы без споров",

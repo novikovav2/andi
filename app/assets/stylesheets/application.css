@@ -34,3 +34,10 @@ body {
     width: 100%;
     margin: 0 auto;
 }
+
+@media (min-width: 1280px) {
+    .events-new .app-container,
+    .seo-page .app-container {
+        max-width: 1152px;
+    }
+}

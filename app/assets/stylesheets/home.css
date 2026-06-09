@@ -335,3 +335,11 @@
     font-weight: 800;
     flex: 0 0 auto;
 }
+
+@media (min-width: 1280px) {
+    .events-new .home-hero-desktop-image,
+    .seo-page .seo-hero-desktop-image {
+        max-width: none;
+        object-position: right;
+    }
+}

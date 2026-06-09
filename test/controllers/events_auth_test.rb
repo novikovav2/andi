@@ -12,6 +12,145 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Почему удобно"
   end
 
+  test "guest sees events saved on current device" do
+    post events_path, params: {
+      event: {
+        title: "Device picnic"
+      }
+    }
+
+    get root_path
+
+    assert_response :success
+    assert_includes response.body, "Device picnic"
+    assert_includes response.body, "События, созданные на этом устройстве"
+    assert_includes response.body, "чтобы видеть мероприятия на всех устройствах"
+  end
+
+  test "signed in user sees active account events on home page" do
+    user = create_user
+    active_event = user.events.create!(
+      title: "Account trip",
+      organizer_token: "account-trip-token",
+      status: "confirmed"
+    )
+    active_event.participants.create!(name: "Катя")
+
+    sign_in_as(user)
+
+    get root_path
+
+    assert_response :success
+    assert_includes response.body, "Account trip"
+    assert_includes response.body, "Мои активные мероприятия"
+    assert_includes response.body, "Мероприятия, сохранённые в аккаунте"
+  end
+
+  test "signed in user also sees device event from current device" do
+    post events_path, params: {
+      event: {
+        title: "Guest device trip"
+      }
+    }
+
+    user = create_user
+    sign_in_as(user)
+
+    get root_path
+
+    assert_response :success
+    assert_includes response.body, "Guest device trip"
+    assert_includes response.body, "Мероприятия на этом устройстве"
+    assert_includes response.body, "Эти мероприятия пока не привязаны к аккаунту"
+    assert_no_match "Активных мероприятий пока нет.", response.body
+  end
+
+  test "signed in user does not see duplicate event already saved to account" do
+    post events_path, params: {
+      event: {
+        title: "Shared event"
+      }
+    }
+
+    event = Event.last
+    user = create_user
+    event.update!(user:)
+
+    sign_in_as(user)
+
+    get root_path
+
+    assert_response :success
+    assert_equal 1, response.body.scan("Shared event").count
+    assert_includes response.body, "Мои активные мероприятия"
+    assert_no_match "Мероприятия на этом устройстве", response.body
+  end
+
+  test "signed in user does not see other users events on home page" do
+    user = create_user
+    other_user = create_user
+    other_user.events.create!(
+      title: "Other birthday",
+      organizer_token: "other-birthday-token",
+      status: "confirmed"
+    )
+
+    sign_in_as(user)
+
+    get root_path
+
+    assert_response :success
+    assert_no_match "Other birthday", response.body
+  end
+
+  test "signed in user does not see settled events in active home block" do
+    user = create_user
+    user.events.create!(
+      title: "Finished party",
+      organizer_token: "finished-party-token",
+      status: "settled"
+    )
+
+    sign_in_as(user)
+
+    get root_path
+
+    assert_response :success
+    assert_no_match "Finished party", response.body
+    assert_includes response.body, "Активных мероприятий пока нет."
+  end
+
+  test "signed in user does not see settled device events on home page" do
+    post events_path, params: {
+      event: {
+        title: "Finished device picnic"
+      }
+    }
+    Event.last.update!(status: "settled")
+
+    user = create_user
+    sign_in_as(user)
+
+    get root_path
+
+    assert_response :success
+    assert_no_match "Finished device picnic", response.body
+    assert_no_match "Мероприятия на этом устройстве", response.body
+    assert_includes response.body, "Активных мероприятий пока нет."
+  end
+
+  test "signed in user without active events sees empty home state" do
+    user = create_user
+
+    sign_in_as(user)
+
+    get root_path
+
+    assert_response :success
+    assert_includes response.body, "Активных мероприятий пока нет."
+    assert_select "a[href='#create-event']", "Создать мероприятие"
+  end
+
   test "guest creates event without user" do
     assert_difference "Event.count", 1 do
       post events_path, params: {
@@ -217,6 +356,13 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
   end
 
   private
+
+  def sign_in_as(user)
+    post session_path, params: {
+      email: user.email,
+      password: "password123"
+    }
+  end
 
   def create_user(plan: "free")
     User.create!(

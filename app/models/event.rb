@@ -14,6 +14,10 @@ class Event < ApplicationRecord
     where(organizer_token: token).order(created_at: :desc)
   }
 
+  scope :active, -> {
+    where.not(status: "settled")
+  }
+
   enum :status, {
     draft: "draft",
     unconfirmed: "unconfirmed",

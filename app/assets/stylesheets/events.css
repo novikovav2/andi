@@ -456,6 +456,10 @@
     z-index: 30;
 }
 
+body:has(#confirm_bar .confirm-bar) .fab-button {
+    bottom: 82px;
+}
+
 .confirm-bar-inner {
     max-width: 480px;
     margin: 0 auto;
