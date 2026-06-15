@@ -67,4 +67,32 @@ class SeoPagesControllerTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Без регистрации"
     assert_includes response.body, "После встречи остались чеки и вопросы"
   end
+
+  test "business trip expenses page opens without authentication" do
+    get business_trip_expenses_path
+
+    assert_response :success
+    assert_select "h1", text: "Удобный учёт расходов в командировке"
+  end
+
+  test "business trip expenses page has conversion content" do
+    get business_trip_expenses_path
+
+    assert_response :success
+    assert_includes response.body, "Создать мероприятие"
+    assert_includes response.body, "FAQ"
+    assert_includes response.body, "Без регистрации"
+    assert_includes response.body, "Командировка на несколько дней"
+    assert_includes response.body, "Можно ли вести расходы несколько дней?"
+  end
+
+  test "business trip expenses page has seo meta tags" do
+    get business_trip_expenses_path
+
+    assert_response :success
+    assert_select "title", text: /Учёт расходов в командировке — разделить траты с коллегами/
+    assert_select "meta[name='description'][content=?]",
+                  "Анди помогает учитывать расходы в командировке: билеты, отель, такси, питание и другие траты. Добавьте коллег, фиксируйте расходы по дням и получите понятный расчёт переводов."
+    assert_select "link[rel='canonical'][href=?]", business_trip_expenses_url
+  end
 end

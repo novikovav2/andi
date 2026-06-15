@@ -36,6 +36,7 @@ Rails.application.routes.draw do
   get "/picnic-expenses", to: "seo_pages#picnic_expenses", as: :picnic_expenses
   get "/party-expenses", to: "seo_pages#party_expenses", as: :party_expenses
   get "/who-owes-whom", to: "seo_pages#who_owes_whom", as: :who_owes_whom
+  get "/business-trip-expenses", to: "seo_pages#business_trip_expenses", as: :business_trip_expenses
 
   resource :registration, only: [ :new, :create ]
   resource :session, only: [ :new, :create, :destroy ]
