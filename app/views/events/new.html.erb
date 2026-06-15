@@ -201,6 +201,18 @@
       <h3 class="mt-4 text-xl font-semibold text-slate-950">Любые общие расходы</h3>
       <p class="mt-2 leading-7 text-slate-600">Анди подходит для любых совместных покупок.</p>
     </div>
+
+    <div class="rounded-2xl border border-blue-100 bg-blue-50/70 p-5 shadow-sm md:col-span-2">
+      <div class="text-3xl" aria-hidden="true">💼</div>
+      <h3 class="mt-4 text-xl font-semibold text-slate-950">Командировка на несколько дней</h3>
+      <p class="mt-2 leading-7 text-slate-600">
+        Добавляйте расходы по мере поездки: такси, отель, билеты, питание и встречи с коллегами.
+        В конце Анди покажет, кто сколько потратил и кому нужно перевести.
+      </p>
+      <%= link_to "Подробнее про командировки →",
+                  business_trip_expenses_path,
+                  class: "mt-4 inline-flex font-semibold text-blue-700 hover:text-blue-800" %>
+    </div>
   </div>
 </section>
 
