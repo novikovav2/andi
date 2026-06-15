@@ -204,17 +204,64 @@
   </div>
 </section>
 
-<section class="mt-12">
-  <h2 class="text-3xl font-bold text-slate-950">Как это работает</h2>
+<section class="home-timeline-section mt-12">
+  <div class="max-w-2xl">
+    <h2 class="text-3xl font-bold text-slate-950">Как это работает</h2>
+    <p class="mt-3 text-lg leading-8 text-slate-600">
+      Добавляйте траты по мере события — Анди соберёт всё в один понятный расчёт.
+    </p>
+  </div>
 
-  <div class="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-    <ol class="list-decimal list-inside space-y-3 text-slate-700">
-      <li>Создайте мероприятие.</li>
-      <li>Добавьте участников.</li>
-      <li>Запишите расходы.</li>
-      <li>Отметьте, кто участвовал в каждой покупке.</li>
-      <li>Получите готовый список переводов.</li>
-    </ol>
+  <ol class="home-timeline mt-6">
+    <li class="home-timeline-card">
+      <div class="home-timeline-marker" aria-hidden="true">☕</div>
+      <div class="home-timeline-content">
+        <p class="home-timeline-time">Утро</p>
+        <h3 class="home-timeline-title">Кофе и завтрак</h3>
+        <p class="home-timeline-text">Один оплатил кофе, другой — выпечку.</p>
+      </div>
+    </li>
+
+    <li class="home-timeline-card">
+      <div class="home-timeline-marker" aria-hidden="true">🚕</div>
+      <div class="home-timeline-content">
+        <p class="home-timeline-time">День</p>
+        <h3 class="home-timeline-title">Такси и билеты</h3>
+        <p class="home-timeline-text">Добавьте трату вручную или сфотографируйте чек.</p>
+      </div>
+    </li>
+
+    <li class="home-timeline-card">
+      <div class="home-timeline-marker" aria-hidden="true">🍕</div>
+      <div class="home-timeline-content">
+        <p class="home-timeline-time">Вечер</p>
+        <h3 class="home-timeline-title">Ужин и продукты</h3>
+        <p class="home-timeline-text">Отметьте, кто участвовал в каждой позиции.</p>
+      </div>
+    </li>
+  </ol>
+
+  <div class="home-timeline-result">
+    <div class="home-timeline-result-heading">
+      <div class="home-timeline-result-icon" aria-hidden="true">✓</div>
+      <div>
+        <p class="home-timeline-result-label">Готовый расчёт</p>
+        <h3 class="home-timeline-result-title">Анди всё посчитала</h3>
+      </div>
+    </div>
+
+    <div class="home-timeline-transfers" aria-label="Пример переводов">
+      <div class="home-timeline-transfer">
+        <span>Миша → Игорь</span>
+        <strong>840 ₽</strong>
+      </div>
+      <div class="home-timeline-transfer">
+        <span>Оля → Игорь</span>
+        <strong>420 ₽</strong>
+      </div>
+    </div>
+
+    <p class="home-timeline-result-note">Без таблиц, калькуляторов и споров в чате.</p>
   </div>
 </section>
 

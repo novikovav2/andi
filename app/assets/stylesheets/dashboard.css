@@ -76,6 +76,110 @@
     font-weight: 800;
     white-space: nowrap;
 }
+
+.dashboard-archive {
+    border: 1px solid #e2e8f0;
+    border-radius: 22px;
+    background: rgba(248, 250, 252, 0.75);
+    padding: 4px;
+}
+
+.dashboard-archive-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px;
+    cursor: pointer;
+    list-style: none;
+}
+
+.dashboard-archive-summary::-webkit-details-marker {
+    display: none;
+}
+
+.dashboard-archive-title-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.dashboard-archive-title {
+    margin: 0;
+    color: #334155;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.dashboard-archive-count {
+    display: inline-flex;
+    min-width: 28px;
+    height: 28px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: #e2e8f0;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.dashboard-archive-subtitle {
+    margin: 4px 0 0;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.dashboard-archive-chevron {
+    flex: 0 0 auto;
+    color: #64748b;
+    font-size: 24px;
+    line-height: 1;
+    transition: transform 160ms ease;
+}
+
+.dashboard-archive[open] .dashboard-archive-chevron {
+    transform: rotate(180deg);
+}
+
+.dashboard-archive-list {
+    display: grid;
+    gap: 10px;
+    padding: 0 12px 12px;
+}
+
+.dashboard-archive:not([open]) .dashboard-archive-list {
+    display: none;
+}
+
+.dashboard-event-card-archived {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+    box-shadow: none;
+}
+
+.dashboard-event-card-archived .dashboard-event-title {
+    color: #475569;
+}
+
+.dashboard-event-card-archived .dashboard-event-date,
+.dashboard-event-card-archived .dashboard-event-meta {
+    color: #94a3b8;
+}
+
+.dashboard-event-archived-badge {
+    display: inline-flex;
+    align-items: center;
+    border-radius: 999px;
+    background: #e2e8f0;
+    padding: 6px 11px;
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+@media (max-width: 640px) {
     .dashboard-event-card {
         padding: 16px;
         border-radius: 18px;
@@ -106,3 +210,4 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+}

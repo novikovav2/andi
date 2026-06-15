@@ -336,6 +336,196 @@
     flex: 0 0 auto;
 }
 
+.events-new .home-timeline {
+    display: grid;
+    gap: 14px;
+}
+
+.events-new .home-timeline-card {
+    position: relative;
+    display: flex;
+    gap: 14px;
+    min-width: 0;
+}
+
+.events-new .home-timeline-card:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    top: 48px;
+    bottom: -14px;
+    left: 23px;
+    width: 2px;
+    background: #dbeafe;
+}
+
+.events-new .home-timeline-marker {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    width: 48px;
+    height: 48px;
+    flex: 0 0 48px;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #bfdbfe;
+    border-radius: 16px;
+    background: #eff6ff;
+    font-size: 24px;
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.08);
+}
+
+.events-new .home-timeline-content {
+    min-width: 0;
+    flex: 1;
+    border: 1px solid #e2e8f0;
+    border-radius: 18px;
+    background: #ffffff;
+    padding: 18px;
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+}
+
+.events-new .home-timeline-time,
+.events-new .home-timeline-result-label {
+    margin: 0;
+    color: #2563eb;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.events-new .home-timeline-title {
+    margin: 5px 0 0;
+    color: #0f172a;
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.events-new .home-timeline-text {
+    margin: 6px 0 0;
+    color: #64748b;
+    font-size: 15px;
+    line-height: 1.55;
+}
+
+.events-new .home-timeline-result {
+    margin-top: 14px;
+    overflow: hidden;
+    border: 1px solid #bfdbfe;
+    border-radius: 22px;
+    background: linear-gradient(135deg, #eff6ff 0%, #ffffff 65%, #ecfeff 100%);
+    padding: 20px;
+    box-shadow: 0 12px 30px rgba(37, 99, 235, 0.1);
+}
+
+.events-new .home-timeline-result-heading {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.events-new .home-timeline-result-icon {
+    display: flex;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    background: #2563eb;
+    color: #ffffff;
+    font-size: 21px;
+    font-weight: 800;
+    box-shadow: 0 8px 18px rgba(37, 99, 235, 0.24);
+}
+
+.events-new .home-timeline-result-title {
+    margin: 3px 0 0;
+    color: #0f172a;
+    font-size: 21px;
+    font-weight: 800;
+    line-height: 1.3;
+}
+
+.events-new .home-timeline-transfers {
+    display: grid;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+.events-new .home-timeline-transfer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    border: 1px solid rgba(191, 219, 254, 0.8);
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.82);
+    padding: 11px 13px;
+    color: #334155;
+    font-size: 14px;
+}
+
+.events-new .home-timeline-transfer strong {
+    flex: 0 0 auto;
+    color: #0f172a;
+    font-weight: 800;
+}
+
+.events-new .home-timeline-result-note {
+    margin: 14px 0 0;
+    color: #475569;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+@media (min-width: 768px) {
+    .events-new .home-timeline {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+    }
+
+    .events-new .home-timeline-card {
+        display: block;
+    }
+
+    .events-new .home-timeline-card:not(:last-child)::after {
+        top: 23px;
+        bottom: auto;
+        left: 48px;
+        width: calc(100% - 32px);
+        height: 2px;
+    }
+
+    .events-new .home-timeline-marker {
+        margin-left: 18px;
+    }
+
+    .events-new .home-timeline-content {
+        min-height: 170px;
+        margin-top: 12px;
+    }
+
+    .events-new .home-timeline-result {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(280px, 0.9fr);
+        column-gap: 32px;
+        align-items: center;
+        padding: 24px;
+    }
+
+    .events-new .home-timeline-transfers {
+        grid-column: 2;
+        grid-row: 1 / span 2;
+        margin-top: 0;
+    }
+
+    .events-new .home-timeline-result-note {
+        grid-column: 1;
+    }
+}
+
 @media (min-width: 1280px) {
     .events-new .home-hero-desktop-image,
     .seo-page .seo-hero-desktop-image {

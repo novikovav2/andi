@@ -10,50 +10,98 @@
                 class: "px-4 py-3 rounded-xl bg-blue-600 text-white font-semibold" %>
   </div>
 
-  <% if @events.any? %>
-    <div class="space-y-3">
-      <% @events.each do |event| %>
-        <%= link_to event_share_path(event.access_token),
-                    class: "dashboard-event-card" do %>
-          <div class="dashboard-event-main">
-            <div class="dashboard-event-title"><%= event.title %></div>
+  <section>
+    <div class="mb-4">
+      <h2 class="text-xl font-bold text-slate-900">Активные мероприятия</h2>
+      <p class="text-sm text-slate-500 mt-1">События, которые ещё требуют действий.</p>
+    </div>
 
-            <span class="dashboard-event-status event-status-pill
-              <%= if event.settled? || event.confirmed?
-                    "event-status-confirmed"
-                  elsif event.unconfirmed?
-                    "event-status-pending"
-                  else
-                    "event-status-draft"
-                  end %>">
-              <%= event_status_label(event) %>
-            </span>
-          </div>
+    <% if @active_events.any? %>
+      <div class="space-y-3">
+        <% @active_events.each do |event| %>
+          <%= link_to event_share_path(event.access_token),
+                      class: "dashboard-event-card" do %>
+            <div class="dashboard-event-main">
+              <div class="dashboard-event-title"><%= event.title %></div>
 
-          <div class="dashboard-event-date">
-            <%= l(event.created_at.to_date, format: :long) %>
-          </div>
-
-          <div class="dashboard-event-footer">
-            <div class="dashboard-event-meta">
-              <span><%= event.participants_count %> участников</span>
-              <span>·</span>
-              <span><%= rubles(event.total_expenses_cents) %> трат</span>
+              <span class="dashboard-event-status event-status-pill
+                <%= if event.confirmed?
+                      "event-status-confirmed"
+                    elsif event.unconfirmed?
+                      "event-status-pending"
+                    else
+                      "event-status-draft"
+                    end %>">
+                <%= event_status_label(event) %>
+              </span>
             </div>
 
-            <span class="dashboard-event-open">Открыть →</span>
-          </div>
-        <% end %>
-      <% end %>
-    </div>
-  <% else %>
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 text-center">
-      <div class="text-lg font-semibold text-slate-900 mb-2">Пока нет мероприятий</div>
-      <p class="text-sm text-slate-500 mb-5">Создайте первое событие, и оно появится здесь.</p>
+            <div class="dashboard-event-date">
+              <%= l(event.created_at.to_date, format: :long) %>
+            </div>
 
-      <%= link_to "Создать мероприятие",
-                  root_path,
-                  class: "inline-flex px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold" %>
-    </div>
+            <div class="dashboard-event-footer">
+              <div class="dashboard-event-meta">
+                <span><%= event.participants_count %> участников</span>
+                <span>·</span>
+                <span><%= rubles(event.total_expenses_cents) %> трат</span>
+              </div>
+
+              <span class="dashboard-event-open">Открыть →</span>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-6 text-center">
+        <div class="text-lg font-semibold text-slate-900 mb-2">Активных мероприятий пока нет.</div>
+        <p class="text-sm text-slate-500 mb-5">Создайте событие, когда появятся новые общие расходы.</p>
+
+        <%= link_to "Создать мероприятие",
+                    root_path,
+                    class: "inline-flex px-5 py-3 rounded-xl bg-blue-600 text-white font-semibold" %>
+      </div>
+    <% end %>
+  </section>
+
+  <% if @archived_events.any? %>
+    <details class="dashboard-archive mt-8">
+      <summary class="dashboard-archive-summary">
+        <div>
+          <div class="dashboard-archive-title-row">
+            <h2 class="dashboard-archive-title">Архив</h2>
+            <span class="dashboard-archive-count"><%= @archived_events.size %></span>
+          </div>
+          <p class="dashboard-archive-subtitle">Завершённые мероприятия, которые больше не требуют действий.</p>
+        </div>
+
+        <span class="dashboard-archive-chevron" aria-hidden="true">⌄</span>
+      </summary>
+
+      <div class="dashboard-archive-list">
+        <% @archived_events.each do |event| %>
+          <%= link_to event_share_path(event.access_token),
+                      class: "dashboard-event-card dashboard-event-card-archived" do %>
+            <div class="dashboard-event-main">
+              <div class="dashboard-event-title"><%= event.title %></div>
+
+              <span class="dashboard-event-status dashboard-event-archived-badge">Завершено</span>
+            </div>
+
+            <div class="dashboard-event-date">
+              <%= l(event.created_at.to_date, format: :long) %>
+            </div>
+
+            <div class="dashboard-event-footer">
+              <div class="dashboard-event-meta">
+                <span><%= event.participants_count %> участников</span>
+                <span>·</span>
+                <span><%= rubles(event.total_expenses_cents) %> трат</span>
+              </div>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </details>
   <% end %>
 </div>

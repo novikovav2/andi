@@ -10,6 +10,10 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Создать мероприятие"
     assert_includes response.body, "Для поездок, пикников и вечеринок"
     assert_includes response.body, "Почему удобно"
+    assert_includes response.body, "Утро"
+    assert_includes response.body, "День"
+    assert_includes response.body, "Вечер"
+    assert_includes response.body, "Анди всё посчитала"
   end
 
   test "guest sees events saved on current device" do
