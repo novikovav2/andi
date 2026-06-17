@@ -334,13 +334,18 @@
     margin-bottom: 18px;
 }
 
-.event-photos-back-link {
+.back-link {
     display: inline-flex;
-    margin-bottom: 14px;
+    margin: 0 0 18px;
     color: #64748b;
     font-size: 14px;
-    font-weight: 700;
+    font-weight: 800;
     text-decoration: none;
+    transition: color 160ms ease;
+}
+
+.back-link:hover {
+    color: #1d4ed8;
 }
 
 .event-photos-title {

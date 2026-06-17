@@ -1,8 +1,6 @@
 <div class="min-h-screen bg-slate-50 px-4 py-6">
   <div class="max-w-xl mx-auto">
-    <div class="mb-6">
-      <%= link_to "← Назад к событию", event_share_path(@event.access_token), class: "text-blue-500" %>
-    </div>
+    <%= render "shared/back_link", path: event_share_path(@event.access_token) %>
 
     <div class="mb-6">
       <h1 class="text-2xl font-semibold text-slate-900">

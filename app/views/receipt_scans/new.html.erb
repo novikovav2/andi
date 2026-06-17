@@ -1,4 +1,6 @@
 <div class="max-w-xl mx-auto">
+  <%= render "shared/back_link", path: event_share_path(@event.access_token) %>
+
   <div class="mb-6">
     <h1 class="text-3xl font-bold text-slate-900">Распознать чек</h1>
     <p class="text-sm text-slate-500 mt-2">Загрузите фото чека, а Анди подготовит список позиций.</p>
@@ -36,10 +38,6 @@
         <%= form.submit "Загрузить чек",
                         class: "inline-flex justify-center rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white disabled:cursor-not-allowed disabled:bg-blue-300",
                         data: { receipt_image_compression_target: "submit" } %>
-
-        <%= link_to "Назад к событию",
-                    event_share_path(@event.access_token),
-                    class: "inline-flex justify-center rounded-xl bg-slate-100 px-5 py-3 font-semibold text-slate-700" %>
       </div>
     <% end %>
   </div>

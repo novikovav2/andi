@@ -64,6 +64,15 @@ class EventPhotosControllerTest < ActionDispatch::IntegrationTest
     assert_no_match "Участник события", response.body
   end
 
+  test "album page has unified back link to event" do
+    event = create_event_for(@pro_user, organizer_token: "pro-photo-back-link-token")
+
+    get event_photos_path(event, access_token: event.access_token)
+
+    assert_response :success
+    assert_select "a.back-link[href=?]", event_share_path(event.access_token), text: "← К событию"
+  end
+
   test "uploaded photo blob path is served by active storage" do
     event = create_event_for(@pro_user, organizer_token: "pro-photo-blob-token")
     event_photo = create_event_photo_for(event)

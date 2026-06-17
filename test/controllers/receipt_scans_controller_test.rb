@@ -27,6 +27,7 @@ class ReceiptScansControllerTest < ActionDispatch::IntegrationTest
     get new_event_receipt_scan_path(@event)
 
     assert_response :success
+    assert_select "a.back-link[href=?]", event_share_path(@event.access_token), text: "← К событию"
     assert_select "h1", "Распознать чек"
     assert_select "input[type=file][name='receipt_scan[image]']"
     assert_select "input[type=submit][value='Загрузить чек']"
@@ -90,6 +91,7 @@ class ReceiptScansControllerTest < ActionDispatch::IntegrationTest
     get event_receipt_scan_path(@event, receipt_scan)
 
     assert_response :success
+    assert_select "a.back-link[href=?]", event_share_path(@event.access_token), text: "← К событию"
     assert_select "div", text: /Чек распознаётся/
     assert_select "[data-controller='auto-refresh']"
     assert_select "[data-auto-refresh-delay-value='3000']"

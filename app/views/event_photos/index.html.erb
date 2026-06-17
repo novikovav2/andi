@@ -4,9 +4,7 @@
       <div class="max-w-xl mx-auto">
         <div class="event-photos-header">
           <div>
-            <%= link_to "← Назад к событию",
-                        event_share_path(@event.access_token),
-                        class: "event-photos-back-link" %>
+            <%= render "shared/back_link", path: event_share_path(@event.access_token) %>
 
             <h1 class="event-photos-title">Фото мероприятия</h1>
             <p class="event-photos-subtitle">

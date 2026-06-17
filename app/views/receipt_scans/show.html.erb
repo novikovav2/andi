@@ -1,4 +1,6 @@
 <div class="max-w-xl mx-auto">
+  <%= render "shared/back_link", path: event_share_path(@event.access_token) %>
+
   <div class="mb-6">
     <h1 class="text-3xl font-bold text-slate-900">Распознать чек</h1>
     <p class="text-sm text-slate-500 mt-2">Проверьте позиции перед добавлением в событие.</p>
@@ -159,9 +161,4 @@
     </div>
   <% end %>
 
-  <div class="mt-5">
-    <%= link_to "Назад к событию",
-                event_share_path(@event.access_token),
-                class: "inline-flex rounded-xl bg-slate-100 px-5 py-3 font-semibold text-slate-700" %>
-  </div>
 </div>

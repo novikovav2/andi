@@ -444,6 +444,32 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     assert_includes response.body, "Такой страницы нет"
   end
 
+  test "settlements page has unified back link to event" do
+    event = Event.create!(
+      title: "Settlements back link",
+      organizer_token: "settlements-back-link-token"
+    )
+
+    get event_settlements_path(event.access_token)
+
+    assert_response :success
+    assert_select "a.back-link[href=?]", event_share_path(event.access_token), text: "← К событию"
+  end
+
+  test "balance explanation page has unified back link to event" do
+    event = Event.create!(
+      title: "Balance back link",
+      organizer_token: "balance-back-link-token"
+    )
+    from = event.participants.create!(name: "Миша")
+    to = event.participants.create!(name: "Оля")
+
+    get balance_explanation_path(event.access_token, from, to)
+
+    assert_response :success
+    assert_select "a.back-link[href=?]", event_share_path(event.access_token), text: "← К событию"
+  end
+
   test "organizer can open event settings" do
     post events_path, params: {
       event: {
