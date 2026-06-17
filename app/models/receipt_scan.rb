@@ -1,5 +1,7 @@
 class ReceiptScan < ApplicationRecord
   belongs_to :event
+  has_many :expenses, dependent: :restrict_with_error
+
   has_one_attached :image
 
   enum :status, {

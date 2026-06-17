@@ -1,6 +1,7 @@
 class Expense < ApplicationRecord
   belongs_to :event
   belongs_to :payer, class_name: "Participant"
+  belongs_to :receipt_scan, optional: true
 
   has_many :expense_shares, dependent: :destroy
   has_many :participants, through: :expense_shares

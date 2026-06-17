@@ -17,6 +17,10 @@ class ReceiptScanRecognitionJob < ApplicationJob
       processing_time_ms:
     )
   rescue => e
+    Rails.logger.warn(
+      "[ReceiptScanRecognitionJob] receipt_scan_id=#{receipt_scan_id} failed: #{e.class}: #{e.message}"
+    )
+
     receipt_scan&.update!(
       status: "failed",
       error: e.message

@@ -6,8 +6,9 @@ module EventRefreshable
   def event_refresh_streams(event)
     participants = event.participants.order(:created_at)
     participant_form = Participant.new
-    expenses = event.expenses.includes(:payer, :participants).order(created_at: :desc)
-    balances = BalanceCalculator.new(event).call
+    expenses = event.expenses
+                    .includes(:payer, :participants, receipt_scan: { image_attachment: :blob })
+                    .order(created_at: :desc)
 
     streams = [
       turbo_stream.replace(
@@ -36,6 +37,15 @@ module EventRefreshable
         "expense_locked_state",
         partial: "events/expense_locked_state",
         locals: { participants: }
+      ),
+
+      turbo_stream.replace(
+        "receipt_upload_action",
+        partial: "events/receipt_upload_action",
+        locals: {
+          event:,
+          participants:
+        }
       ),
 
       turbo_stream.replace(

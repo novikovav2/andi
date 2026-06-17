@@ -9,7 +9,7 @@ Rails.application.routes.draw do
     resources :participants, only: [ :create, :edit, :update, :destroy ]
     resources :expenses, only: [ :new, :create, :edit, :update, :destroy ]
     get "participants_sheet", to: "participants#sheet", as: :participants_sheet
-    resources :receipt_scans, only: [ :new, :create, :show ] do
+    resources :receipt_scans, only: [ :new, :create, :show, :destroy ] do
       member do
         post :confirm
       end

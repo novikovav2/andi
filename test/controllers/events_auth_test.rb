@@ -285,7 +285,134 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     get event_share_path(event.access_token)
 
     assert_response :success
-    assert_match "Распознать чек", response.body
+    assert_match "Добавить чек", response.body
+  end
+
+  test "adding participant refreshes receipt upload action with add receipt link" do
+    user = create_user(plan: "pro")
+    event = Event.create!(
+      title: "Receipt refresh trip",
+      organizer_token: "receipt-refresh-token",
+      user:
+    )
+
+    post event_participants_path(event),
+         params: { participant: { name: "Катя" } },
+         as: :turbo_stream
+
+    assert_response :success
+    assert_select "turbo-stream[action='replace'][target='receipt_upload_action']"
+    assert_includes response.body, "Добавить чек"
+    assert_includes response.body, new_event_receipt_scan_path(event, access_token: event.access_token)
+  end
+
+  test "event show does not display separate receipt scans block" do
+    user = create_user(plan: "pro")
+    event = Event.create!(
+      title: "Trip without checks",
+      organizer_token: "empty-receipts-event-token",
+      user:
+    )
+    event.participants.create!(name: "Катя")
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "h2", text: "Чеки", count: 0
+    assert_no_match "Чеки пока не добавлены.", response.body
+    assert_no_match "Можно сфотографировать чек, Анди распознает позиции и поможет добавить расходы.", response.body
+    assert_select "a[href=?]",
+                  new_event_receipt_scan_path(event, access_token: event.access_token),
+                  text: "Добавить чек"
+  end
+
+  test "event show displays receipt link on expense created from receipt" do
+    user = create_user(plan: "pro")
+    event = Event.create!(
+      title: "Trip with receipt",
+      organizer_token: "receipt-card-event-token",
+      user:
+    )
+    payer = event.participants.create!(name: "Катя")
+    receipt_scan = create_receipt_scan_for_event(event, status: "processing")
+    expense = event.expenses.create!(
+      title: "Кофе",
+      amount_cents: 12_000,
+      payer:,
+      receipt_scan:
+    )
+    expense.expense_shares.create!(participant: payer)
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select ".expense-card", text: /Кофе/
+    assert_select "a.expense-receipt-link[href*='/rails/active_storage/blobs'][target='_blank']", "📄 Чек"
+    assert_no_match "Открыть чек", response.body
+  end
+
+  test "event show does not display receipt link on ordinary expense" do
+    user = create_user(plan: "pro")
+    event = Event.create!(
+      title: "Trip with ordinary expense",
+      organizer_token: "ordinary-expense-receipt-token",
+      user:
+    )
+    payer = event.participants.create!(name: "Катя")
+    expense = event.expenses.create!(
+      title: "Такси",
+      amount_cents: 45_000,
+      payer:
+    )
+    expense.expense_shares.create!(participant: payer)
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select ".expense-card", text: /Такси/
+    assert_select "a.expense-receipt-link", count: 0
+  end
+
+  test "event show does not display unattached receipt scans" do
+    user = create_user(plan: "pro")
+    event = Event.create!(
+      title: "Trip with ready receipt",
+      organizer_token: "ready-receipt-card-event-token",
+      user:
+    )
+    event.participants.create!(name: "Катя")
+    create_receipt_scan_for_event(
+      event,
+      status: "ready",
+      raw_result: { "items" => [ { "title" => "Кофе", "amount" => "120.00" } ] },
+      recognized_items_count: 3,
+      created_expenses_count: 2
+    )
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select ".receipt-scan-card", count: 0
+    assert_no_match "Распознан", response.body
+    assert_no_match "Позиций: 3", response.body
+    assert_no_match "Добавлено расходов: 2", response.body
+  end
+
+  test "event show does not display failed receipt scan status as separate card" do
+    user = create_user(plan: "pro")
+    event = Event.create!(
+      title: "Trip with failed receipt",
+      organizer_token: "failed-receipt-card-event-token",
+      user:
+    )
+    event.participants.create!(name: "Катя")
+    create_receipt_scan_for_event(event, status: "failed", error: "Фото слишком размыто")
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select ".receipt-scan-card", count: 0
+    assert_no_match "Ошибка распознавания", response.body
   end
 
   test "unknown event token returns not found" do
@@ -377,5 +504,16 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
       password_confirmation: "password123",
       plan:
     )
+  end
+
+  def create_receipt_scan_for_event(event, attributes = {})
+    receipt_scan = event.receipt_scans.build(attributes.reverse_merge(status: "pending"))
+    receipt_scan.image.attach(
+      io: Rails.root.join("test/fixtures/files/receipt.jpg").open,
+      filename: "receipt.jpg",
+      content_type: "image/jpeg"
+    )
+    receipt_scan.save!
+    receipt_scan
   end
 end

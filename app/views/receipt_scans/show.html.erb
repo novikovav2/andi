@@ -4,6 +4,33 @@
     <p class="text-sm text-slate-500 mt-2">Проверьте позиции перед добавлением в событие.</p>
   </div>
 
+  <div class="receipt-scan-image-card">
+    <% if receipt_scan_image_available?(@receipt_scan) %>
+      <%= image_tag receipt_scan_image_path(@receipt_scan),
+                    alt: "Фото чека",
+                    class: "receipt-scan-image",
+                    loading: "eager" %>
+    <% else %>
+      <div class="receipt-scan-image-placeholder">
+        Фото чека удалено, но результат распознавания сохранён.
+      </div>
+    <% end %>
+
+    <% unless @receipt_scan.expenses.exists? %>
+      <div class="receipt-scan-image-actions">
+        <%= button_to "Удалить чек",
+                      event_receipt_scan_path(@event, @receipt_scan, access_token: params[:access_token]),
+                      method: :delete,
+                      class: "receipt-scan-delete-button",
+                      form: {
+                        data: {
+                          turbo_confirm: "Удалить чек? Уже добавленные расходы сохранятся."
+                        }
+                      } %>
+      </div>
+    <% end %>
+  </div>
+
   <% if @receipt_scan.failed? %>
     <div class="bg-red-50 rounded-2xl border border-red-100 p-5 text-red-700">
       <div class="font-semibold">Не удалось распознать чек</div>
@@ -12,11 +39,11 @@
 
     <div class="mt-4">
       <%= link_to "Загрузить другой чек",
-                  new_event_receipt_scan_path(@event),
+                  new_event_receipt_scan_path(@event, access_token: params[:access_token]),
                   class: "inline-flex rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white" %>
     </div>
   <% elsif @receipt_scan.ready? %>
-    <%= form_with url: confirm_event_receipt_scan_path(@event, @receipt_scan),
+    <%= form_with url: confirm_event_receipt_scan_path(@event, @receipt_scan, access_token: params[:access_token]),
                   method: :post,
                   class: "space-y-4" do %>
       <% if @participants.any? %>

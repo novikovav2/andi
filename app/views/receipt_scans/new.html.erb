@@ -6,6 +6,7 @@
 
   <div class="bg-white rounded-2xl border border-slate-100 shadow-sm p-5">
     <%= form_with model: [ @event, @receipt_scan ],
+                  url: event_receipt_scans_path(@event, access_token: params[:access_token]),
                   class: "space-y-4",
                   data: {
                     controller: "receipt-image-compression",

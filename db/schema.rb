@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_08_001000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_17_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -77,10 +77,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_08_001000) do
     t.datetime "created_at", null: false
     t.bigint "event_id", null: false
     t.bigint "payer_id", null: false
+    t.bigint "receipt_scan_id"
     t.string "title", null: false
     t.datetime "updated_at", null: false
     t.index ["event_id"], name: "index_expenses_on_event_id"
     t.index ["payer_id"], name: "index_expenses_on_payer_id"
+    t.index ["receipt_scan_id"], name: "index_expenses_on_receipt_scan_id"
   end
 
   create_table "participants", force: :cascade do |t|
@@ -136,6 +138,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_08_001000) do
   add_foreign_key "expense_shares", "participants"
   add_foreign_key "expenses", "events"
   add_foreign_key "expenses", "participants", column: "payer_id"
+  add_foreign_key "expenses", "receipt_scans"
   add_foreign_key "participants", "events"
   add_foreign_key "receipt_scans", "events"
   add_foreign_key "settlements", "events"

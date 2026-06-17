@@ -1,0 +1,88 @@
+<section id="receipt_scans" class="receipt-scans-section">
+  <div class="section-header">
+    <div>
+      <h2 class="section-title">Чеки</h2>
+      <p class="section-subtitle">Загруженные фото чеков и результаты распознавания</p>
+    </div>
+
+    <% if event_feature_access(event).receipt_recognition? && participants.any? %>
+      <%= link_to "Добавить чек",
+                  new_event_receipt_scan_path(event, access_token: event.access_token),
+                  class: "receipt-scan-add-link" %>
+    <% end %>
+  </div>
+
+  <% if event_feature_access(event).receipt_recognition? && participants.empty? %>
+    <p class="receipt-scan-disabled-note">
+      Сначала добавьте участников события, затем можно будет добавить чек.
+    </p>
+  <% end %>
+
+  <% if receipt_scans.any? %>
+    <div class="receipt-scan-list">
+      <% receipt_scans.each do |receipt_scan| %>
+        <div class="receipt-scan-card">
+          <%= button_to "🗑",
+                        event_receipt_scan_path(event, receipt_scan, access_token: event.access_token),
+                        method: :delete,
+                        class: "receipt-scan-delete-button",
+                        title: "Удалить чек",
+                        aria: { label: "Удалить чек" },
+                        form: {
+                          class: "receipt-scan-delete-form",
+                          data: {
+                            turbo_confirm: "Удалить чек? Уже добавленные расходы сохранятся."
+                          }
+                        } %>
+
+          <% if receipt_scan_image_available?(receipt_scan) %>
+            <%= link_to receipt_scan_image_path(receipt_scan),
+                        class: "receipt-scan-thumb-link",
+                        target: "_blank",
+                        rel: "noopener",
+                        aria: { label: "Открыть фото чека" } do %>
+              <%= image_tag receipt_scan_image_path(receipt_scan),
+                            alt: "Фото чека",
+                            class: "receipt-scan-thumb",
+                            loading: "lazy" %>
+            <% end %>
+          <% else %>
+            <div class="receipt-scan-thumb receipt-scan-thumb-placeholder">
+              Фото чека удалено
+            </div>
+          <% end %>
+
+          <div class="receipt-scan-card-body">
+            <div class="receipt-scan-card-header">
+              <div>
+                <div class="receipt-scan-uploaded-at">
+                  <%= receipt_scan_uploaded_at(receipt_scan) %>
+                </div>
+                <div class="receipt-scan-status">
+                  <%= receipt_scan_status_label(receipt_scan) %>
+                </div>
+              </div>
+            </div>
+
+            <div class="receipt-scan-meta">
+              <% if receipt_scan.recognized_items_count.present? %>
+                <span>Позиций: <%= receipt_scan.recognized_items_count %></span>
+              <% end %>
+
+              <% if receipt_scan.created_expenses_count.present? %>
+                <span>Добавлено расходов: <%= receipt_scan.created_expenses_count %></span>
+              <% end %>
+            </div>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="receipt-scan-empty">
+      <p class="receipt-scan-empty-title">Чеки пока не добавлены.</p>
+      <p class="receipt-scan-empty-text">
+        Можно сфотографировать чек, Анди распознает позиции и поможет добавить расходы.
+      </p>
+    </div>
+  <% end %>
+</section>

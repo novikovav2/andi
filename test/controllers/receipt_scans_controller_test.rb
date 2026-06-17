@@ -16,6 +16,11 @@ class ReceiptScansControllerTest < ActionDispatch::IntegrationTest
     @event = Event.create!(title: "Чек из кафе", status: "draft", organizer_token: "receipt-scan-test-token", user: @user)
     @payer = @event.participants.create!(name: "Катя")
     @friend = @event.participants.create!(name: "Сергей")
+
+    post session_path, params: {
+      email: @user.email,
+      password: "password123"
+    }
   end
 
   test "new shows upload form" do
@@ -41,10 +46,23 @@ class ReceiptScansControllerTest < ActionDispatch::IntegrationTest
       user: free_user
     )
 
-    get new_event_receipt_scan_path(event)
+    get new_event_receipt_scan_path(event, access_token: event.access_token)
 
     assert_redirected_to dashboard_path
     assert_equal "Эта возможность доступна на тарифе Pro", flash[:alert]
+  end
+
+  test "show returns not found without event access" do
+    receipt_scan = create_receipt_scan(status: "ready", raw_result: {
+      "items" => [
+        { "title" => "Хлеб", "amount" => "120.00", "category" => "food" }
+      ]
+    })
+    delete session_path
+
+    get event_receipt_scan_path(@event, receipt_scan)
+
+    assert_response :not_found
   end
 
   test "create with image creates receipt scan, enqueues recognition job and redirects to show" do
@@ -135,6 +153,38 @@ class ReceiptScansControllerTest < ActionDispatch::IntegrationTest
     assert_select "[data-controller='auto-refresh']", false
   end
 
+  test "show displays receipt image when attached" do
+    receipt_scan = create_receipt_scan(status: "ready", raw_result: {
+      "items" => [
+        { "title" => "Хлеб", "amount" => "120.00", "category" => "food" }
+      ]
+    })
+
+    get event_receipt_scan_path(@event, receipt_scan)
+
+    assert_response :success
+    assert_select "img.receipt-scan-image[alt='Фото чека']"
+    assert_no_match "Фото чека удалено, но результат распознавания сохранён.", response.body
+  end
+
+  test "show displays image placeholder when image was purged" do
+    receipt_scan = create_receipt_scan(
+      status: "ready",
+      image_purged_at: Time.current,
+      raw_result: {
+        "items" => [
+          { "title" => "Хлеб", "amount" => "120.00", "category" => "food" }
+        ]
+      }
+    )
+
+    get event_receipt_scan_path(@event, receipt_scan)
+
+    assert_response :success
+    assert_includes response.body, "Фото чека удалено, но результат распознавания сохранён."
+    assert_select "img.receipt-scan-image", false
+  end
+
   test "show displays payer radio chips when event has participants" do
     receipt_scan = create_receipt_scan(status: "ready", raw_result: {
       "items" => [
@@ -159,7 +209,98 @@ class ReceiptScansControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_select ".text-red-700", text: /Фото слишком размыто/
     assert_select "a", "Загрузить другой чек"
+    assert_select "form[action=?]", event_receipt_scan_path(@event, receipt_scan) do
+      assert_select "button", "Удалить чек"
+    end
     assert_select "[data-controller='auto-refresh']", false
+  end
+
+  test "destroy removes receipt scan and keeps created expenses" do
+    receipt_scan = create_receipt_scan(
+      status: "failed",
+      error: "Фото слишком размыто",
+      raw_result: { "items" => [ { "title" => "Кофе", "amount" => "120.00" } ] },
+      recognized_items_count: 1,
+      created_expenses_count: 1
+    )
+    expense = @event.expenses.create!(
+      title: "Кофе",
+      amount_cents: 12_000,
+      payer: @payer
+    )
+
+    assert_difference "ReceiptScan.count", -1 do
+      assert_no_difference "Expense.count" do
+        delete event_receipt_scan_path(@event, receipt_scan)
+      end
+    end
+
+    assert_redirected_to event_share_path(@event.access_token)
+    assert_equal "Чек удалён", flash[:notice]
+    assert_not ReceiptScan.exists?(receipt_scan.id)
+    assert @event.expenses.exists?(expense.id)
+  end
+
+  test "destroy removes receipt from event but keeps expenses visible" do
+    receipt_scan = create_receipt_scan(status: "ready", raw_result: {
+      "items" => [
+        { "title" => "Хлеб", "amount" => "120.00", "category" => "food" }
+      ]
+    })
+    @event.expenses.create!(
+      title: "Хлеб",
+      amount_cents: 12_000,
+      payer: @payer
+    )
+
+    delete event_receipt_scan_path(@event, receipt_scan)
+    get event_share_path(@event.access_token)
+
+    assert_response :success
+    assert_no_match "Открыть чек", response.body
+    assert_includes response.body, "Хлеб"
+  end
+
+  test "destroy does not remove receipt scan linked to expenses" do
+    receipt_scan = create_receipt_scan(status: "ready", raw_result: {
+      "items" => [
+        { "title" => "Хлеб", "amount" => "120.00", "category" => "food" }
+      ]
+    })
+    @event.expenses.create!(
+      title: "Хлеб",
+      amount_cents: 12_000,
+      payer: @payer,
+      receipt_scan:
+    )
+
+    assert_no_difference "ReceiptScan.count" do
+      delete event_receipt_scan_path(@event, receipt_scan)
+    end
+
+    assert_redirected_to event_share_path(@event.access_token)
+    assert_equal "Чек уже связан с расходами, поэтому его нельзя удалить.", flash[:alert]
+    assert ReceiptScan.exists?(receipt_scan.id)
+  end
+
+  test "show hides delete button when receipt scan is linked to expenses" do
+    receipt_scan = create_receipt_scan(status: "ready", raw_result: {
+      "items" => [
+        { "title" => "Хлеб", "amount" => "120.00", "category" => "food" }
+      ]
+    })
+    @event.expenses.create!(
+      title: "Хлеб",
+      amount_cents: 12_000,
+      payer: @payer,
+      receipt_scan:
+    )
+
+    get event_receipt_scan_path(@event, receipt_scan)
+
+    assert_response :success
+    assert_select "form[action=?]", event_receipt_scan_path(@event, receipt_scan), count: 0
+    assert_no_match "Удалить чек", response.body
   end
 
   test "show hides submit when event has no participants" do
@@ -219,6 +360,7 @@ class ReceiptScansControllerTest < ActionDispatch::IntegrationTest
     expense = @event.expenses.find_by!(title: "Хлеб")
     assert_equal @payer, expense.payer
     assert_equal 12_000, expense.amount_cents
+    assert_equal receipt_scan, expense.receipt_scan
     assert_equal @event.participants.pluck(:id).sort, expense.participant_ids.sort
     assert_equal 2, receipt_scan.reload.created_expenses_count
   end
@@ -247,6 +389,7 @@ class ReceiptScansControllerTest < ActionDispatch::IntegrationTest
 
     expense = @event.expenses.find_by!(title: "Хлеб")
     assert_equal [ @friend.id ], expense.participant_ids
+    assert_equal receipt_scan, expense.receipt_scan
     assert_equal 1, receipt_scan.reload.created_expenses_count
   end
 

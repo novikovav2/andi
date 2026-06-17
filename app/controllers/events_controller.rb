@@ -41,7 +41,9 @@ class EventsController < ApplicationController
     return render_not_found if @event.blank?
 
     @participants = @event.participants.order(:created_at)
-    @expenses = @event.expenses.includes(:payer, :participants).order(created_at: :desc)
+    @expenses = @event.expenses
+                      .includes(:payer, :participants, receipt_scan: { image_attachment: :blob })
+                      .order(created_at: :desc)
 
     @balances = BalanceCalculator.new(@event).call
 

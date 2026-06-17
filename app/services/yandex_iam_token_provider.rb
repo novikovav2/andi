@@ -23,7 +23,7 @@ class YandexIamTokenProvider
     if rails_env.production?
       metadata_token || env_token || raise_missing_token!
     else
-      env_token || metadata_token || raise_missing_token!
+      env_token || raise_missing_development_token!
     end
   end
 
@@ -75,5 +75,9 @@ class YandexIamTokenProvider
 
   def raise_missing_token!
     raise "Не удалось получить Yandex Cloud IAM token: metadata service недоступен и YANDEX_CLOUD_IAM_TOKEN не задан"
+  end
+
+  def raise_missing_development_token!
+    raise "YANDEX_CLOUD_IAM_TOKEN не задан. Добавьте токен в локальное окружение, чтобы распознавать чеки в development."
   end
 end

@@ -1,0 +1,7 @@
+<div id="receipt_upload_action">
+  <% if event_feature_access(event).receipt_recognition? && participants.any? %>
+    <%= link_to "Добавить чек",
+                new_event_receipt_scan_path(event, access_token: event.access_token),
+                class: "receipt-scan-add-link" %>
+  <% end %>
+</div>

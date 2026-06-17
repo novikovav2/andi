@@ -1,9 +1,8 @@
 <div id="<%= dom_id(expense) %>">
-  <%= link_to edit_event_expense_path(expense.event, expense),
-              data: { turbo_frame: "modal" },
-              class: "expense-card-link" do %>
-
-    <div class="expense-card">
+  <div class="expense-card">
+    <%= link_to edit_event_expense_path(expense.event, expense),
+                data: { turbo_frame: "modal" },
+                class: "expense-card-link" do %>
       <div class="expense-card-row">
         <div class="expense-left">
           <div class="expense-icon">
@@ -35,6 +34,15 @@
           </div>
         </div>
       </div>
-    </div>
-  <% end %>
+
+    <% end %>
+
+    <% if receipt_scan_image_available?(expense.receipt_scan) %>
+      <%= link_to "📄 Чек",
+                  receipt_scan_image_path(expense.receipt_scan),
+                  target: "_blank",
+                  rel: "noopener",
+                  class: "expense-receipt-link" %>
+    <% end %>
+  </div>
 </div>

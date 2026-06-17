@@ -2,8 +2,9 @@ class ReceiptScansController < ApplicationController
   AUTO_REFRESH_DURATION = 60.seconds
 
   before_action :set_event
+  before_action :require_event_access!
   before_action :require_receipt_recognition_feature
-  before_action :set_receipt_scan, only: [ :show, :confirm ]
+  before_action :set_receipt_scan, only: [ :show, :confirm, :destroy ]
 
   def new
     @receipt_scan = @event.receipt_scans.build
@@ -15,7 +16,7 @@ class ReceiptScansController < ApplicationController
     if @receipt_scan.save
       @receipt_scan.update!(status: "pending", raw_result: nil, error: nil)
       ReceiptScanRecognitionJob.perform_later(@receipt_scan.id)
-      redirect_to event_receipt_scan_path(@event, @receipt_scan),
+      redirect_to receipt_scan_path,
                   notice: "Чек загружен. Распознавание началось."
     else
       render :new, status: :unprocessable_entity
@@ -33,7 +34,7 @@ class ReceiptScansController < ApplicationController
     payer = @event.participants.find_by(id: params[:payer_id])
 
     unless payer
-      redirect_to event_receipt_scan_path(@event, @receipt_scan),
+      redirect_to receipt_scan_path,
                   alert: "Выберите плательщика из участников события"
       return
     end
@@ -41,13 +42,13 @@ class ReceiptScansController < ApplicationController
     enabled_items = items.values.select { |item| item_value(item, :enabled) == "1" }
 
     if enabled_items.empty?
-      redirect_to event_receipt_scan_path(@event, @receipt_scan),
+      redirect_to receipt_scan_path,
                   alert: "Не выбраны позиции для добавления"
       return
     end
 
     if enabled_items.any? { |item| selected_event_participant_ids(item).empty? }
-      redirect_to event_receipt_scan_path(@event, @receipt_scan),
+      redirect_to receipt_scan_path,
                   alert: "Для каждой выбранной позиции отметьте участников"
       return
     end
@@ -59,14 +60,14 @@ class ReceiptScansController < ApplicationController
         attributes = expense_attributes_for(item, payer:)
         next unless valid_expense_attributes?(attributes)
 
-        expense = @event.expenses.create!(attributes)
+        expense = @event.expenses.create!(attributes.merge(receipt_scan: @receipt_scan))
         sync_receipt_expense_participants!(expense, selected_event_participant_ids(item))
         created_expenses << expense
       end
     end
 
     if created_expenses.empty?
-      redirect_to event_receipt_scan_path(@event, @receipt_scan),
+      redirect_to receipt_scan_path,
                   alert: "Не выбраны позиции для добавления"
       return
     end
@@ -76,10 +77,27 @@ class ReceiptScansController < ApplicationController
     redirect_to event_share_path(@event.access_token), notice: "Позиции из чека добавлены"
   end
 
+  def destroy
+    if @receipt_scan.destroy
+      redirect_to event_share_path(@event.access_token), notice: "Чек удалён"
+    else
+      redirect_to event_share_path(@event.access_token),
+                  alert: "Чек уже связан с расходами, поэтому его нельзя удалить."
+    end
+  end
+
   private
 
   def set_event
     @event = Event.find(params[:event_id])
+  end
+
+  def require_event_access!
+    return if valid_event_access_token?
+    return if organizer?(@event)
+    return if signed_in? && @event.user == current_user
+
+    render_not_found
   end
 
   def require_receipt_recognition_feature
@@ -92,6 +110,19 @@ class ReceiptScansController < ApplicationController
 
   def receipt_scan_params
     params.require(:receipt_scan).permit(:image)
+  end
+
+  def receipt_scan_path
+    event_receipt_scan_path(@event, @receipt_scan, access_token: params[:access_token])
+  end
+
+  def valid_event_access_token?
+    params[:access_token].present? &&
+      @event.access_token.present? &&
+      ActiveSupport::SecurityUtils.secure_compare(
+        params[:access_token],
+        @event.access_token
+      )
   end
 
   def auto_refresh_receipt_scan?
