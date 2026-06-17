@@ -4,6 +4,7 @@ class Event < ApplicationRecord
   has_many :participants, dependent: :destroy
   belongs_to :user, optional: true
   has_many :receipt_scans, dependent: :destroy
+  has_many :event_photos, dependent: :destroy
 
   validates :title, presence: true
   validates :access_token, presence: true, uniqueness: true
@@ -35,6 +36,10 @@ class Event < ApplicationRecord
     else
       update!(status: "unconfirmed", locked_at: nil)
     end
+  end
+
+  def photos_enabled?
+    user&.pro?
   end
 
   private

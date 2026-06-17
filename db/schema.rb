@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_17_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_18_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -49,6 +49,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_000000) do
     t.string "eventable_type"
     t.json "metadata"
     t.datetime "updated_at", null: false
+  end
+
+  create_table "event_photos", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "event_id", null: false
+    t.bigint "participant_id"
+    t.datetime "updated_at", null: false
+    t.index ["event_id"], name: "index_event_photos_on_event_id"
+    t.index ["participant_id"], name: "index_event_photos_on_participant_id"
   end
 
   create_table "events", force: :cascade do |t|
@@ -133,6 +142,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_17_000000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "event_photos", "events"
+  add_foreign_key "event_photos", "participants"
   add_foreign_key "events", "users"
   add_foreign_key "expense_shares", "expenses"
   add_foreign_key "expense_shares", "participants"

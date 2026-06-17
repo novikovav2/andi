@@ -34,6 +34,12 @@ module EventRefreshable
       ),
 
       turbo_stream.replace(
+        "event_photos_entry",
+        partial: "events/event_photos_link",
+        locals: { event: }
+      ),
+
+      turbo_stream.replace(
         "expense_locked_state",
         partial: "events/expense_locked_state",
         locals: { participants: }

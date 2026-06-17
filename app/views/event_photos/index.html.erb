@@ -1,0 +1,109 @@
+<div class="app-screen">
+  <div class="app-container">
+    <div class="min-h-screen bg-slate-50 px-4 py-6">
+      <div class="max-w-xl mx-auto">
+        <div class="event-photos-header">
+          <div>
+            <%= link_to "← Назад к событию",
+                        event_share_path(@event.access_token),
+                        class: "event-photos-back-link" %>
+
+            <h1 class="event-photos-title">Фото мероприятия</h1>
+            <p class="event-photos-subtitle">
+              Общий альбом события. Чеки и расходы остаются отдельно.
+            </p>
+          </div>
+        </div>
+
+        <div class="event-photo-upload-card">
+          <%= form_with url: event_photos_path(@event, access_token: params[:access_token]),
+                        scope: :event_photo,
+                        method: :post,
+                        html: { multipart: true },
+                        class: "event-photo-upload-form",
+                        data: { controller: "event-photo-upload" } do |form| %>
+            <div>
+              <%= form.label :images, "Добавить фото", class: "event-photo-upload-label" %>
+
+              <%= form.label :images,
+                             "Выберите фото для загрузки",
+                             class: "event-photo-file-button" %>
+
+              <%= form.file_field :images,
+                                  multiple: true,
+                                  accept: "image/*",
+                                  required: true,
+                                  class: "event-photo-upload-input",
+                                  data: {
+                                    event_photo_upload_target: "input",
+                                    action: "change->event-photo-upload#update"
+                                  } %>
+
+              <p class="event-photo-upload-selected"
+                 data-event-photo-upload-target="selected">
+                Файлы не выбраны
+              </p>
+            </div>
+
+            <%= form.submit "Загрузить",
+                            class: "event-photo-upload-button" %>
+          <% end %>
+        </div>
+
+        <% if @event_photos.any? %>
+          <div class="event-photo-grid">
+            <% @event_photos.each do |event_photo| %>
+              <div class="event-photo-card">
+                <% if (image_path = event_photo_image_path(event_photo)) %>
+                  <%= link_to image_path,
+                              target: "_blank",
+                              rel: "noopener",
+                              class: "event-photo-link",
+                              aria: { label: "Открыть фото" } do %>
+                    <%= image_tag image_path,
+                                  alt: "Фото мероприятия",
+                                  class: "event-photo-image",
+                                  loading: "lazy" %>
+                  <% end %>
+                <% else %>
+                  <div class="event-photo-missing">
+                    Фото не удалось показать
+                  </div>
+                <% end %>
+
+                <% if event_photo.participant.present? || organizer?(@event) %>
+                  <div class="event-photo-meta">
+                    <% if event_photo.participant.present? %>
+                      <span>
+                        <%= event_photo.participant.name %>
+                      </span>
+                    <% end %>
+
+                    <% if organizer?(@event) %>
+                      <%= button_to "Удалить",
+                                    event_photo_path(@event, event_photo, access_token: params[:access_token]),
+                                    method: :delete,
+                                    class: "event-photo-delete-button",
+                                    form: {
+                                      data: {
+                                        turbo_confirm: "Удалить фото из альбома?"
+                                      }
+                                    } %>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="event-photo-empty">
+            <p class="event-photo-empty-title">Фото пока нет.</p>
+            <p class="event-photo-empty-text">
+              Добавьте первые кадры с мероприятия.
+            </p>
+          </div>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

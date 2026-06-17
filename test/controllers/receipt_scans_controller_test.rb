@@ -167,6 +167,23 @@ class ReceiptScansControllerTest < ActionDispatch::IntegrationTest
     assert_no_match "Фото чека удалено, но результат распознавания сохранён.", response.body
   end
 
+  test "receipt scan blob path is served by active storage" do
+    receipt_scan = create_receipt_scan(status: "ready", raw_result: {
+      "items" => [
+        { "title" => "Хлеб", "amount" => "120.00", "category" => "food" }
+      ]
+    })
+
+    get rails_blob_path(receipt_scan.image, disposition: "inline")
+
+    assert_response :redirect
+
+    follow_redirect!
+
+    assert_response :success
+    assert_equal "image/jpeg", response.media_type
+  end
+
   test "show displays image placeholder when image was purged" do
     receipt_scan = create_receipt_scan(
       status: "ready",

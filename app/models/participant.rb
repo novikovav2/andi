@@ -7,6 +7,7 @@ class Participant < ApplicationRecord
            dependent: :destroy
   has_many :expense_shares, dependent: :destroy
   has_many :shared_expenses, through: :expense_shares, source: :expense
+  has_many :event_photos, dependent: :nullify
 
   validates :name, presence: true
 end

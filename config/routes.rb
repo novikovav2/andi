@@ -8,6 +8,7 @@ Rails.application.routes.draw do
   resources :events, only: [] do
     resources :participants, only: [ :create, :edit, :update, :destroy ]
     resources :expenses, only: [ :new, :create, :edit, :update, :destroy ]
+    resources :photos, controller: "event_photos", only: [ :index, :create, :destroy ]
     get "participants_sheet", to: "participants#sheet", as: :participants_sheet
     resources :receipt_scans, only: [ :new, :create, :show, :destroy ] do
       member do
@@ -44,5 +45,7 @@ Rails.application.routes.draw do
 
   patch "/events/:id/claim", to: "events#claim", as: :claim_event
 
-  match "*unmatched", to: "application#not_found", via: :all
+  constraints ->(request) { !request.path.start_with?("/rails/") } do
+    match "*unmatched", to: "application#not_found", via: :all
+  end
 end
