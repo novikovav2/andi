@@ -1,0 +1,32 @@
+<div id="expenses" class="space-y-3">
+  <% if expenses.any? %>
+    <%= render expenses %>
+  <% else %>
+    <div id="empty_expenses" class="expenses-empty-state">
+      <div class="expenses-empty-icon">🍕</div>
+
+      <div>
+        <h3 class="expenses-empty-title">Пока нет трат</h3>
+        <p class="expenses-empty-text">
+          Добавьте первую покупку или загрузите чек.<br>
+          Анди автоматически посчитает, кто кому сколько должен.
+        </p>
+      </div>
+
+      <% if participants.any? %>
+        <div class="expenses-empty-actions">
+          <%= link_to "Добавить трату",
+                      new_event_expense_path(event),
+                      data: { turbo_frame: "modal" },
+                      class: "expenses-empty-primary-action" %>
+
+          <% if event_feature_access(event).receipt_recognition? %>
+            <%= link_to "Загрузить чек",
+                        new_event_receipt_scan_path(event, access_token: event.access_token),
+                        class: "expenses-empty-secondary-action" %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

@@ -1,79 +1,117 @@
 <div id="settlements">
-  <% if event.confirmed? || event.settled? %>
+  <div class="section-header">
+    <div>
+      <h2 class="section-title">
+        Переводы
+      </h2>
 
-    <div class="section-header">
+      <p class="section-subtitle">
+        Кто кому переводит деньги
+      </p>
+    </div>
+  </div>
+
+  <% if event.expenses.none? %>
+
+    <div class="expenses-empty-state settlements-empty-state">
+      <div class="expenses-empty-icon">💸</div>
+
       <div>
-        <h2 class="section-title">
-          Переводы
-        </h2>
+        <h3 class="expenses-empty-title">Пока нечего переводить</h3>
+        <% if event.participants.any? %>
+          <p class="expenses-empty-text">
+            Добавьте траты.<br>
+            Когда появится задолженность, Анди покажет переводы здесь.
+          </p>
+        <% else %>
+          <p class="expenses-empty-text">
+            Добавьте участников и траты.<br>
+            Когда появится задолженность, Анди покажет переводы здесь.
+          </p>
+        <% end %>
+      </div>
 
-        <p class="section-subtitle">
-          Кто кому переводит деньги
+      <% if event.participants.any? %>
+        <div class="expenses-empty-actions">
+          <%= link_to "Добавить трату",
+                      new_event_expense_path(event),
+                      data: { turbo_frame: "modal" },
+                      class: "expenses-empty-primary-action" %>
+        </div>
+      <% end %>
+    </div>
+
+  <% elsif !event.confirmed? && !event.settled? %>
+
+    <div class="expenses-empty-state settlements-empty-state">
+      <div class="expenses-empty-icon">🧮</div>
+
+      <div>
+        <h3 class="expenses-empty-title">Расчёт ещё не подтверждён</h3>
+        <p class="expenses-empty-text">
+          Проверьте траты и подтвердите расчёт. После этого Анди покажет, кто кому сколько должен.
         </p>
       </div>
     </div>
 
-    <% if settlements.any? %>
-      <div class="settlements-list">
-        <% settlements.each do |settlement| %>
+  <% elsif settlements.any? %>
 
-          <%= link_to balance_explanation_path(
-                        event.access_token,
-                        settlement.from_participant.id,
-                        settlement.to_participant.id
-                      ),
-                      class: "settlement-card-link" do %>
+    <div class="settlements-list">
+      <% settlements.each do |settlement| %>
 
-            <div class="settlement-card <%= settlement.paid? ? 'settlement-card-paid' : 'settlement-card-unpaid' %>">
-              <div class="settlement-main">
-                <div class="settlement-people">
-                  <div class="avatar <%= participant_color(settlement.from_participant) %>">
-                    <%= participant_initials(settlement.from_participant.name) %>
-                  </div>
+        <%= link_to balance_explanation_path(
+                      event.access_token,
+                      settlement.from_participant.id,
+                      settlement.to_participant.id
+                    ),
+                    class: "settlement-card-link" do %>
 
-                  <div class="settlement-flow">
-                    <div class="settlement-names">
-                      <span><%= settlement.from_participant.name %></span>
-                      <span class="settlement-arrow">→</span>
-                      <span><%= settlement.to_participant.name %></span>
-                    </div>
-
-                    <div class="settlement-caption <%= settlement.paid? ? 'settlement-caption-paid' : 'settlement-caption-unpaid' %>">
-                      <% if settlement.paid? %>
-                        ✓ Деньги переведены
-                      <% else %>
-                        Нажмите, чтобы посмотреть расчёт
-                      <% end %>
-                    </div>
-                  </div>
+          <div class="settlement-card <%= settlement.paid? ? 'settlement-card-paid' : 'settlement-card-unpaid' %>">
+            <div class="settlement-main">
+              <div class="settlement-people">
+                <div class="avatar <%= participant_color(settlement.from_participant) %>">
+                  <%= participant_initials(settlement.from_participant.name) %>
                 </div>
 
-                <div class="settlement-amount">
-                  <%= rubles(settlement.amount_cents) %>
+                <div class="settlement-flow">
+                  <div class="settlement-names">
+                    <span><%= settlement.from_participant.name %></span>
+                    <span class="settlement-arrow">→</span>
+                    <span><%= settlement.to_participant.name %></span>
+                  </div>
+
+                  <div class="settlement-caption <%= settlement.paid? ? 'settlement-caption-paid' : 'settlement-caption-unpaid' %>">
+                    <% if settlement.paid? %>
+                      ✓ Деньги переведены
+                    <% else %>
+                      Нажмите, чтобы посмотреть расчёт
+                    <% end %>
+                  </div>
                 </div>
               </div>
+
+              <div class="settlement-amount">
+                <%= rubles(settlement.amount_cents) %>
+              </div>
             </div>
-          <% end %>
-
-
+          </div>
         <% end %>
+
+      <% end %>
+    </div>
+
+  <% else %>
+
+    <div class="expenses-empty-state settlements-empty-state">
+      <div class="expenses-empty-icon">✅</div>
+
+      <div>
+        <h3 class="expenses-empty-title">Всё уже поделено</h3>
+        <p class="expenses-empty-text">
+          Сейчас никто никому ничего не должен.
+        </p>
       </div>
-
-    <% else %>
-
-      <div class="empty-balance">
-        <div class="empty-icon">💸</div>
-
-        <div class="empty-title">
-          Переводов нет
-        </div>
-
-        <div class="empty-text">
-          Все уже рассчитались.
-        </div>
-      </div>
-
-    <% end %>
+    </div>
 
   <% end %>
 </div>

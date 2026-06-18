@@ -976,6 +976,99 @@ body:has(#confirm_bar .confirm-bar) .fab-button {
     margin-top: 28px;
     padding-bottom: 96px;
 }
+
+.expenses-empty-state {
+    display: grid;
+    gap: 16px;
+    border: 1px solid rgba(226,232,240,0.9);
+    border-radius: 24px;
+    background:
+            linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.96));
+    padding: 24px;
+    text-align: center;
+    box-shadow:
+            0 1px 2px rgba(15,23,42,0.03),
+            0 14px 30px rgba(15,23,42,0.05);
+}
+
+.expenses-empty-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto;
+    border-radius: 22px;
+    background: #eff6ff;
+    font-size: 32px;
+}
+
+.expenses-empty-title {
+    margin: 0;
+    color: #0f172a;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0;
+}
+
+.expenses-empty-text {
+    margin: 8px 0 0;
+    color: #64748b;
+    font-size: 15px;
+    line-height: 1.55;
+}
+
+.expenses-empty-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.expenses-empty-primary-action,
+.expenses-empty-secondary-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    border-radius: 16px;
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 800;
+    text-decoration: none;
+    transition:
+            background 160ms ease,
+            color 160ms ease,
+            transform 160ms ease;
+}
+
+.expenses-empty-primary-action {
+    background: #3b82f6;
+    color: white;
+}
+
+.expenses-empty-primary-action:hover {
+    background: #2563eb;
+}
+
+.expenses-empty-secondary-action {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.expenses-empty-secondary-action:hover {
+    background: #bfdbfe;
+}
+
+.expenses-empty-primary-action:active,
+.expenses-empty-secondary-action:active {
+    transform: scale(0.98);
+}
+
+.settlements-empty-state {
+    margin-bottom: 28px;
+}
+
 .participants-avatar-row {
     display: flex;
     align-items: center;

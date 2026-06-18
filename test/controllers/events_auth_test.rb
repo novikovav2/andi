@@ -415,6 +415,281 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     assert_no_match "Ошибка распознавания", response.body
   end
 
+  test "event without expenses displays expenses empty state actions" do
+    user = create_user(plan: "pro")
+    event = Event.create!(
+      title: "Trip without expenses",
+      organizer_token: "empty-expenses-token",
+      user:
+    )
+    event.participants.create!(name: "Катя")
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#empty_expenses" do
+      assert_select ".expenses-empty-title", "Пока нет трат"
+      assert_select ".expenses-empty-text", text: /Добавьте первую покупку или загрузите чек/
+      assert_select ".expenses-empty-text", text: /Анди автоматически посчитает/
+      assert_select "a[href=?][data-turbo-frame='modal']", new_event_expense_path(event), text: "Добавить трату"
+      assert_select "a[href=?]",
+                    new_event_receipt_scan_path(event, access_token: event.access_token),
+                    text: "Загрузить чек"
+    end
+  end
+
+  test "event with expenses does not display expenses empty state" do
+    user = create_user(plan: "pro")
+    event = Event.create!(
+      title: "Trip with expenses",
+      organizer_token: "filled-expenses-token",
+      user:
+    )
+    payer = event.participants.create!(name: "Катя")
+    expense = event.expenses.create!(
+      title: "Пицца",
+      amount_cents: 20_000,
+      payer:
+    )
+    expense.expense_shares.create!(participant: payer)
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#empty_expenses", count: 0
+    assert_select ".expense-card", text: /Пицца/
+  end
+
+  test "event without participants hides add expense empty state action" do
+    event = Event.create!(
+      title: "Trip without participants",
+      organizer_token: "empty-expenses-no-participants-token"
+    )
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#empty_expenses"
+    assert_no_match "Добавить трату", response.body
+    assert_no_match "Загрузить чек", response.body
+  end
+
+  test "event without expenses displays settlements empty state with add expense action" do
+    event = Event.create!(
+      title: "Trip without transfer data",
+      organizer_token: "empty-settlements-token"
+    )
+    event.participants.create!(name: "Катя")
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#settlements" do
+      assert_select ".expenses-empty-title", "Пока нечего переводить"
+      assert_select ".expenses-empty-text", text: /Добавьте траты/
+      assert_select ".expenses-empty-text", text: /Анди покажет переводы здесь/
+      assert_select "a[href=?][data-turbo-frame='modal']", new_event_expense_path(event), text: "Добавить трату"
+    end
+  end
+
+  test "event without expenses and participants hides settlements add expense action" do
+    event = Event.create!(
+      title: "Trip without transfer data or participants",
+      organizer_token: "empty-settlements-no-participants-token"
+    )
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#settlements" do
+      assert_select ".expenses-empty-title", "Пока нечего переводить"
+      assert_select ".expenses-empty-text", text: /Добавьте участников и траты/
+      assert_select "a", count: 0
+    end
+  end
+
+  test "unconfirmed event with expenses displays settlement confirmation state" do
+    event = Event.create!(
+      title: "Needs confirmation trip",
+      organizer_token: "unconfirmed-settlements-token"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    bob = event.participants.create!(name: "Боб")
+    expense = event.expenses.create!(
+      title: "Пицца",
+      amount_cents: 20_000,
+      payer: alice
+    )
+    expense.expense_shares.create!(participant: alice)
+    expense.expense_shares.create!(participant: bob)
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#settlements" do
+      assert_select ".expenses-empty-title", "Расчёт ещё не подтверждён"
+      assert_select ".expenses-empty-text", text: /Проверьте траты и подтвердите расчёт/
+      assert_select "form[action=?]", event_confirmation_path(event), count: 0
+    end
+
+    assert_select "#confirm_bar" do
+      assert_select "form[action=?]", event_confirmation_path(event) do
+        assert_select "button", "Подтвердить"
+      end
+    end
+  end
+
+  test "confirming settlement calculation shows transfers" do
+    event = Event.create!(
+      title: "Confirm transfers trip",
+      organizer_token: "confirm-settlements-token"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    bob = event.participants.create!(name: "Боб")
+    expense = event.expenses.create!(
+      title: "Пицца",
+      amount_cents: 20_000,
+      payer: alice
+    )
+    expense.expense_shares.create!(participant: alice)
+    expense.expense_shares.create!(participant: bob)
+
+    patch event_confirmation_path(event)
+
+    assert_redirected_to event_share_path(event.access_token)
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#confirm_bar .confirm-bar", count: 0
+    assert_select "#settlements" do
+      assert_select ".settlement-card", text: /Боб/
+      assert_select ".settlement-card", text: /Алиса/
+      assert_select ".expenses-empty-title", count: 0
+    end
+  end
+
+  test "confirm bar returns after changing expenses on confirmed event" do
+    event = Event.create!(
+      title: "Reconfirm transfers trip",
+      organizer_token: "reconfirm-settlements-token"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    bob = event.participants.create!(name: "Боб")
+    expense = event.expenses.create!(
+      title: "Пицца",
+      amount_cents: 20_000,
+      payer: alice
+    )
+    expense.expense_shares.create!(participant: alice)
+    expense.expense_shares.create!(participant: bob)
+
+    patch event_confirmation_path(event)
+
+    assert_redirected_to event_share_path(event.access_token)
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#confirm_bar .confirm-bar", count: 0
+
+    patch event_expense_path(event, expense), params: {
+      expense: {
+        title: "Пицца и сок",
+        amount: "250",
+        payer_id: alice.id,
+        participant_ids: [ alice.id, bob.id ]
+      }
+    }
+
+    assert_redirected_to event_share_path(event.access_token)
+    assert_predicate event.reload, :unconfirmed?
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#settlements" do
+      assert_select ".expenses-empty-title", "Расчёт ещё не подтверждён"
+      assert_select "form[action=?]", event_confirmation_path(event), count: 0
+    end
+    assert_select "#confirm_bar" do
+      assert_select "form[action=?]", event_confirmation_path(event) do
+        assert_select "button", "Подтвердить"
+      end
+    end
+
+    patch event_confirmation_path(event)
+
+    assert_redirected_to event_share_path(event.access_token)
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#confirm_bar .confirm-bar", count: 0
+    assert_select "#settlements .settlement-card"
+  end
+
+  test "confirmed event with expenses and zero balance displays all split empty state" do
+    event = Event.create!(
+      title: "Already split trip",
+      organizer_token: "split-settlements-token",
+      status: "confirmed"
+    )
+    payer = event.participants.create!(name: "Катя")
+    expense = event.expenses.create!(
+      title: "Кофе",
+      amount_cents: 12_000,
+      payer:
+    )
+    expense.expense_shares.create!(participant: payer)
+    event.update!(status: "confirmed")
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#settlements" do
+      assert_select ".expenses-empty-title", "Всё уже поделено"
+      assert_select ".expenses-empty-text", text: /Сейчас никто никому ничего не должен/
+      assert_select ".settlement-card", count: 0
+    end
+    assert_no_match "Пока нечего переводить", response.body
+  end
+
+  test "confirmed event with settlements displays transfer list without empty states" do
+    event = Event.create!(
+      title: "Transfers trip",
+      organizer_token: "filled-settlements-token",
+      status: "confirmed"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    bob = event.participants.create!(name: "Боб")
+    expense = event.expenses.create!(
+      title: "Пицца",
+      amount_cents: 20_000,
+      payer: alice
+    )
+    expense.expense_shares.create!(participant: alice)
+    expense.expense_shares.create!(participant: bob)
+    event.settlements.create!(
+      from_participant: bob,
+      to_participant: alice,
+      amount_cents: 10_000,
+      paid: false
+    )
+    event.update!(status: "confirmed")
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#settlements" do
+      assert_select ".settlement-card", text: /Боб/
+      assert_select ".settlement-card", text: /Алиса/
+      assert_select ".expenses-empty-title", count: 0
+    end
+    assert_no_match "Пока нечего переводить", response.body
+    assert_no_match "Всё уже поделено", response.body
+  end
+
   test "unknown event token returns not found" do
     get event_share_path("wrong-token")
 

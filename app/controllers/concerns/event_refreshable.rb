@@ -55,6 +55,16 @@ module EventRefreshable
       ),
 
       turbo_stream.replace(
+        "expenses",
+        partial: "events/expenses",
+        locals: {
+          event:,
+          expenses:,
+          participants:
+        }
+      ),
+
+      turbo_stream.replace(
         "expense_fab",
         partial: "events/expense_fab",
         locals: { event:, participants: }
