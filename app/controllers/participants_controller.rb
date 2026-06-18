@@ -91,7 +91,7 @@ class ParticipantsController < ApplicationController
   end
 
   def destroy
-    unless organizer?(@event)
+    unless event_owner_or_guest_organizer?(@event)
       respond_to do |format|
         format.html do
           redirect_to event_share_path(@event.access_token),

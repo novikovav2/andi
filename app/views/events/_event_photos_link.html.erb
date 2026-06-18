@@ -3,7 +3,7 @@
     <%= link_to "📸 Фото мероприятия · #{event.event_photos.count}",
                 event_photos_path(event, access_token: event.access_token),
                 class: "event-photos-entry-link" %>
-  <% elsif organizer?(event) %>
+  <% elsif event_owner_or_guest_organizer?(event) %>
     <div class="event-photos-entry-upsell">
       📸 Фото мероприятия — доступно в Pro
     </div>

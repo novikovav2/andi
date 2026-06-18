@@ -88,7 +88,7 @@ class EventsController < ApplicationController
   end
 
   def claim
-    unless organizer?(@event)
+    unless @event.user_id.blank? && organizer?(@event)
       redirect_to event_share_path(@event.access_token), alert: "Только организатор может сохранить событие"
       return
     end
@@ -108,7 +108,7 @@ class EventsController < ApplicationController
   end
 
   def require_organizer!
-    return if organizer?(@event)
+    return if event_owner_or_guest_organizer?(@event)
 
     redirect_to event_share_path(@event.access_token),
                 alert: "Только организатор может менять настройки события"

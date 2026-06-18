@@ -485,6 +485,89 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     assert_match "Настройки события", response.body
   end
 
+  test "signed in registered event owner can open settings without organizer token" do
+    user = create_user
+    event = Event.create!(
+      title: "Account settings trip",
+      organizer_token: "owner-settings-token",
+      user:
+    )
+
+    sign_in_as(user)
+
+    get edit_event_path(event)
+
+    assert_response :success
+    assert_match "Настройки события", response.body
+  end
+
+  test "signed in registered event owner sees settings button without organizer token" do
+    user = create_user
+    event = Event.create!(
+      title: "Account button trip",
+      organizer_token: "owner-settings-button-token",
+      user:
+    )
+
+    sign_in_as(user)
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "a.settings-button[href=?]", edit_event_path(event)
+  end
+
+  test "signed in registered event owner can delete event without organizer token" do
+    user = create_user
+    event = Event.create!(
+      title: "Account delete trip",
+      organizer_token: "owner-delete-token",
+      user:
+    )
+
+    sign_in_as(user)
+
+    assert_difference "Event.count", -1 do
+      delete event_path(event)
+    end
+
+    assert_redirected_to root_path
+  end
+
+  test "organizer token does not manage registered event for non owner" do
+    post events_path, params: {
+      event: {
+        title: "Token cannot manage after claim"
+      }
+    }
+
+    event = Event.last
+    owner = create_user
+    other_user = create_user
+    event.update!(user: owner)
+
+    sign_in_as(other_user)
+
+    get edit_event_path(event)
+
+    assert_redirected_to event_share_path(event.access_token)
+  end
+
+  test "organizer token does not show settings button for registered event non owner" do
+    post events_path, params: {
+      event: {
+        title: "Token cannot see settings after claim"
+      }
+    }
+
+    event = Event.last
+    event.update!(user: create_user)
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "a.settings-button", count: 0
+  end
+
   test "non organizer can not open event settings" do
     event = Event.create!(
       title: "Someone else's trip",
@@ -494,6 +577,21 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     get edit_event_path(event)
 
     assert_redirected_to event_share_path(event.access_token)
+  end
+
+  test "guest organizer can still open guest event settings" do
+    post events_path, params: {
+      event: {
+        title: "Legacy guest trip"
+      }
+    }
+
+    event = Event.last
+
+    get edit_event_path(event)
+
+    assert_response :success
+    assert_match "Настройки события", response.body
   end
 
   test "non organizer cannot claim event" do
@@ -512,6 +610,62 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to event_share_path(event.access_token)
     assert_nil event.reload.user
+  end
+
+  test "organizer token cannot claim registered event for another user" do
+    post events_path, params: {
+      event: {
+        title: "Already claimed trip"
+      }
+    }
+
+    event = Event.last
+    owner = create_user
+    other_user = create_user
+    event.update!(user: owner)
+
+    sign_in_as(other_user)
+
+    patch claim_event_path(event)
+
+    assert_redirected_to event_share_path(event.access_token)
+    assert_equal owner, event.reload.user
+  end
+
+  test "registered event owner can delete participant without organizer token" do
+    user = create_user
+    event = Event.create!(
+      title: "Participant owner trip",
+      organizer_token: "participant-owner-token",
+      user:
+    )
+    participant = event.participants.create!(name: "Катя")
+
+    sign_in_as(user)
+
+    assert_difference -> { event.participants.count }, -1 do
+      delete event_participant_path(event, participant)
+    end
+
+    assert_redirected_to event_share_path(event.access_token)
+  end
+
+  test "organizer token does not delete participant on registered event for non owner" do
+    post events_path, params: {
+      event: {
+        title: "Protected participant trip"
+      }
+    }
+
+    event = Event.last
+    event.update!(user: create_user)
+    participant = event.participants.create!(name: "Катя")
+
+    assert_no_difference -> { event.participants.count } do
+      delete event_participant_path(event, participant)
+    end
+
+    assert_redirected_to event_share_path(event.access_token)
   end
 
   private

@@ -18,7 +18,7 @@
       </div>
     <% end %>
 
-    <% unless @receipt_scan.expenses.exists? %>
+    <% if event_owner_or_guest_organizer?(@event) && !@receipt_scan.expenses.exists? %>
       <div class="receipt-scan-image-actions">
         <%= button_to "Удалить чек",
                       event_receipt_scan_path(@event, @receipt_scan, access_token: params[:access_token]),

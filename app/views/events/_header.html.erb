@@ -11,7 +11,7 @@
     </div>
 
     <div class="event-header-actions">
-      <% if signed_in? && organizer?(event) && event.user.nil? %>
+      <% if signed_in? && event.user.nil? && organizer?(event) %>
         <%= button_to "Сохранить",
                       claim_event_path(event),
                       method: :patch,
@@ -28,7 +28,7 @@
         ↗
       </button>
 
-      <% if organizer?(event) %>
+      <% if event_owner_or_guest_organizer?(event) %>
         <%= link_to "⚙️",
                     edit_event_path(event),
                     data: { turbo_frame: "modal" },

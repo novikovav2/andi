@@ -83,7 +83,7 @@
                      class: "w-full rounded-xl bg-blue-500 text-white py-3 font-medium cursor-pointer" %>
       <% end %>
 
-      <% if organizer?(@event) %>
+      <% if event_owner_or_guest_organizer?(@event) %>
         <div class="participant-danger-zone">
 
           <%= button_to "Удалить участника",

@@ -260,6 +260,74 @@ class ReceiptScansControllerTest < ActionDispatch::IntegrationTest
     assert @event.expenses.exists?(expense.id)
   end
 
+  test "registered event owner can delete receipt scan without organizer token" do
+    receipt_scan = create_receipt_scan(status: "failed", error: "Фото слишком размыто")
+    delete session_path
+
+    post session_path, params: {
+      email: @user.email,
+      password: "password123"
+    }
+
+    assert_difference "ReceiptScan.count", -1 do
+      delete event_receipt_scan_path(@event, receipt_scan)
+    end
+
+    assert_redirected_to event_share_path(@event.access_token)
+    assert_equal "Чек удалён", flash[:notice]
+  end
+
+  test "organizer token does not show receipt delete button for registered event non owner" do
+    post events_path, params: {
+      event: {
+        title: "Protected receipt trip"
+      }
+    }
+
+    event = Event.last
+    event.update!(user: @user)
+    receipt_scan = event.receipt_scans.build(status: "failed", error: "Фото слишком размыто")
+    receipt_scan.image.attach(
+      io: Rails.root.join("test/fixtures/files/receipt.jpg").open,
+      filename: "receipt.jpg",
+      content_type: "image/jpeg"
+    )
+    receipt_scan.save!
+
+    delete session_path
+    get event_receipt_scan_path(event, receipt_scan)
+
+    assert_response :success
+    assert_no_match "Удалить чек", response.body
+  end
+
+  test "organizer token does not delete receipt scan for registered event non owner" do
+    post events_path, params: {
+      event: {
+        title: "Protected receipt destroy trip"
+      }
+    }
+
+    event = Event.last
+    event.update!(user: @user)
+    receipt_scan = event.receipt_scans.build(status: "failed", error: "Фото слишком размыто")
+    receipt_scan.image.attach(
+      io: Rails.root.join("test/fixtures/files/receipt.jpg").open,
+      filename: "receipt.jpg",
+      content_type: "image/jpeg"
+    )
+    receipt_scan.save!
+
+    delete session_path
+
+    assert_no_difference "ReceiptScan.count" do
+      delete event_receipt_scan_path(event, receipt_scan)
+    end
+
+    assert_redirected_to event_receipt_scan_path(event, receipt_scan)
+    assert_equal "Удалять чеки может только организатор", flash[:alert]
+  end
+
   test "destroy removes receipt from event but keeps expenses visible" do
     receipt_scan = create_receipt_scan(status: "ready", raw_result: {
       "items" => [

@@ -208,6 +208,46 @@ class EventPhotosControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Удалять фото может только организатор", flash[:alert]
   end
 
+  test "organizer token does not show delete button for registered event non owner" do
+    sign_in_as(@pro_user)
+
+    post events_path, params: {
+      event: {
+        title: "Фото событие с токеном"
+      }
+    }
+
+    event = Event.order(:created_at).last
+    event.update!(user: create_user(plan: "pro"))
+    create_event_photo_for(event)
+
+    get event_photos_path(event)
+
+    assert_response :success
+    assert_no_match "Удалить", response.body
+  end
+
+  test "organizer token does not delete photo for registered event non owner" do
+    sign_in_as(@pro_user)
+
+    post events_path, params: {
+      event: {
+        title: "Фото событие защищено"
+      }
+    }
+
+    event = Event.order(:created_at).last
+    event.update!(user: create_user(plan: "pro"))
+    event_photo = create_event_photo_for(event)
+
+    assert_no_difference -> { event.event_photos.count } do
+      delete event_photo_path(event, event_photo)
+    end
+
+    assert_redirected_to event_photos_path(event)
+    assert_equal "Удалять фото может только организатор", flash[:alert]
+  end
+
   private
 
   def create_user(plan:)

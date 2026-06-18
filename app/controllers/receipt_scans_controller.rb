@@ -5,6 +5,7 @@ class ReceiptScansController < ApplicationController
   before_action :require_event_access!
   before_action :require_receipt_recognition_feature
   before_action :set_receipt_scan, only: [ :show, :confirm, :destroy ]
+  before_action :require_receipt_scan_manager!, only: [ :destroy ]
 
   def new
     @receipt_scan = @event.receipt_scans.build
@@ -106,6 +107,12 @@ class ReceiptScansController < ApplicationController
 
   def set_receipt_scan
     @receipt_scan = @event.receipt_scans.find(params[:id])
+  end
+
+  def require_receipt_scan_manager!
+    return if event_owner_or_guest_organizer?(@event)
+
+    redirect_to receipt_scan_path, alert: "Удалять чеки может только организатор"
   end
 
   def receipt_scan_params
