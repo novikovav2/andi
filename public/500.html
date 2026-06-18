@@ -1,3 +1,68 @@
-<title>Ошибка — Andi</title>
-<h1>Что-то пошло не так</h1>
-<p>Мы уже знаем, что приложение споткнулось. Попробуйте обновить страницу чуть позже.</p>
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Ошибка — Andi</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top, #ffffff, #f8fafc 45%);
+      color: #0f172a;
+    }
+    .card {
+      max-width: 420px;
+      text-align: center;
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-radius: 28px;
+      padding: 32px 24px;
+      box-shadow: 0 12px 30px rgba(15,23,42,.06);
+    }
+    .icon {
+      width: 76px;
+      height: 76px;
+      margin: 0 auto 20px;
+      border-radius: 24px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 30px;
+      line-height: 1.1;
+      letter-spacing: -.04em;
+    }
+    p {
+      margin: 12px 0 24px;
+      color: #64748b;
+      font-size: 16px;
+      line-height: 1.45;
+    }
+    a {
+      display: inline-block;
+      border-radius: 18px;
+      background: #3b82f6;
+      color: white;
+      padding: 14px 18px;
+      font-weight: 800;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+<main class="card">
+  <img class="icon" src="/icons/android-192.png" alt="Andi">
+  <h1>😵 Что-то пошло не так</h1>
+  <p>
+    Во время обработки запроса произошла ошибка.<br>
+    Попробуйте обновить страницу через несколько минут.<br>
+    Если проблема повторяется, вернитесь на главную и попробуйте снова.
+  </p>
+  <a href="/">На главную</a>
+</main>
+</body>
+</html>
