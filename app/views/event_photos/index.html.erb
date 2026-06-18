@@ -69,7 +69,9 @@
                   </div>
                 <% end %>
 
-                <% if event_photo.participant.present? || organizer?(@event) %>
+                <% can_manage_photos = event_owner_or_guest_organizer?(@event) %>
+
+                <% if event_photo.participant.present? || can_manage_photos %>
                   <div class="event-photo-meta">
                     <% if event_photo.participant.present? %>
                       <span>
@@ -77,7 +79,7 @@
                       </span>
                     <% end %>
 
-                    <% if organizer?(@event) %>
+                    <% if can_manage_photos %>
                       <%= button_to "Удалить",
                                     event_photo_path(@event, event_photo, access_token: params[:access_token]),
                                     method: :delete,

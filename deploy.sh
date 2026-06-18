@@ -13,7 +13,7 @@ echo "Building docker image..."
 docker build .  --platform linux/amd64 -t "$image"
 echo "OK"
 
-echo "Pushing docker mage to Yandex..."
+echo "Pushing docker image to Yandex..."
 docker push "$image"
 echo "OK"
 

@@ -1,10 +1,47 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+cd /rails 2>/dev/null || cd /app 2>/dev/null || cd "$(dirname "$0")/.."
+
 export RAILS_ENV="${RAILS_ENV:-production}"
 
+env_status() {
+  local name="$1"
+
+  if [[ -n "${!name:-}" ]]; then
+    echo "${name}: present"
+  else
+    echo "${name}: missing"
+  fi
+}
+
+echo "Release working directory:"
+pwd
+echo "Release /rails/bin directory:"
+if [[ -d /rails/bin ]]; then
+  ls -la /rails/bin
+else
+  echo "/rails/bin: missing"
+  echo "Fallback bin directory:"
+  ls -la bin
+fi
+echo "Ruby version:"
+ruby -v
+echo "Bundler version:"
+bundle -v
+echo "Rails version:"
+bundle exec rails -v
+echo "RAILS_ENV: ${RAILS_ENV}"
+echo "Release environment presence:"
+env_status DATABASE_URL
+env_status SECRET_KEY_BASE
+env_status RAILS_MASTER_KEY
+env_status YANDEX_STORAGE_BUCKET
+env_status YANDEX_STORAGE_ACCESS_KEY
+env_status YANDEX_STORAGE_SECRET_KEY
+
 echo "Migrating primary database..."
-bin/rails db:migrate:primary
+bundle exec rails db:migrate
 
 ensure_schema() {
   local name="$1"
@@ -14,11 +51,11 @@ ensure_schema() {
 
   echo "Checking ${name} database schema..."
 
-  if bin/rails runner "${record_class}.connection.data_source_exists?(\"${table}\") || exit(1)" >/dev/null; then
+  if bundle exec rails runner "${record_class}.connection.data_source_exists?(\"${table}\") || exit(1)" >/dev/null; then
     echo "${name} schema already exists."
   else
     echo "Loading ${name} schema with ${task}..."
-    bin/rails "${task}"
+    bundle exec rails "${task}"
   fi
 }
 

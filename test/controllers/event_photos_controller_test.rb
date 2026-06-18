@@ -161,6 +161,31 @@ class EventPhotosControllerTest < ActionDispatch::IntegrationTest
     assert_equal "Фото удалено", flash[:notice]
   end
 
+  test "signed in event owner sees delete button without organizer token" do
+    event = create_event_for(@pro_user, organizer_token: "owner-other-device-token")
+    create_event_photo_for(event)
+    sign_in_as(@pro_user)
+
+    get event_photos_path(event)
+
+    assert_response :success
+    assert_select "form.button_to[action=?]", event_photo_path(event, event.event_photos.first)
+    assert_select "button.event-photo-delete-button", "Удалить"
+  end
+
+  test "signed in event owner can delete photo without organizer token" do
+    event = create_event_for(@pro_user, organizer_token: "owner-delete-other-device-token")
+    event_photo = create_event_photo_for(event)
+    sign_in_as(@pro_user)
+
+    assert_difference -> { event.event_photos.count }, -1 do
+      delete event_photo_path(event, event_photo)
+    end
+
+    assert_redirected_to event_photos_path(event)
+    assert_equal "Фото удалено", flash[:notice]
+  end
+
   test "participant does not see delete button" do
     event = create_event_for(@pro_user, organizer_token: "pro-photo-no-delete-token")
     create_event_photo_for(event)
@@ -202,10 +227,7 @@ class EventPhotosControllerTest < ActionDispatch::IntegrationTest
   end
 
   def create_event_as_signed_in_organizer(user)
-    post session_path, params: {
-      email: user.email,
-      password: "password123"
-    }
+    sign_in_as(user)
 
     post events_path, params: {
       event: {
@@ -214,6 +236,13 @@ class EventPhotosControllerTest < ActionDispatch::IntegrationTest
     }
 
     Event.order(:created_at).last
+  end
+
+  def sign_in_as(user)
+    post session_path, params: {
+      email: user.email,
+      password: "password123"
+    }
   end
 
   def create_event_photo_for(event, participant: nil)

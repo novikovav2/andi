@@ -13,3 +13,13 @@ Rails-приложение для разделения расходов межд
 bin/setup
 bin/dev
 ```
+
+## Деплой
+
+Деплой web-ревизии в Yandex Cloud Serverless Containers:
+
+```bash
+./deploy.sh
+```
+
+Production-миграции сейчас выполняются отдельно вручную, не через `deploy.sh`.

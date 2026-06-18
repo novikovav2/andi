@@ -3,7 +3,7 @@ class EventPhotosController < ApplicationController
   before_action :require_event_access!
   before_action :require_event_photos_feature
   before_action :set_event_photo, only: [ :destroy ]
-  before_action :require_organizer!, only: [ :destroy ]
+  before_action :require_photo_manager!, only: [ :destroy ]
   before_action :set_noindex
 
   def index
@@ -60,8 +60,8 @@ class EventPhotosController < ApplicationController
                 alert: "Фото мероприятия доступны на тарифе Pro"
   end
 
-  def require_organizer!
-    return if organizer?(@event)
+  def require_photo_manager!
+    return if event_owner_or_guest_organizer?(@event)
 
     redirect_to album_path, alert: "Удалять фото может только организатор"
   end

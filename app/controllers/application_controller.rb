@@ -1,7 +1,7 @@
 class ApplicationController < ActionController::Base
   include EventRefreshable
 
-  helper_method :current_organizer_token, :organizer?
+  helper_method :current_organizer_token, :organizer?, :event_owner_or_guest_organizer?
   helper_method :current_user, :signed_in?
   helper_method :feature_access, :event_feature_access
 
@@ -24,6 +24,14 @@ class ApplicationController < ActionController::Base
         current_organizer_token,
         event.organizer_token
       )
+  end
+
+  def event_owner_or_guest_organizer?(event)
+    return false if event.blank?
+    return true if signed_in? && event.user == current_user
+    return false if event.user_id.present?
+
+    organizer?(event)
   end
 
   def current_user
