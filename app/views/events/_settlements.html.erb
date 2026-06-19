@@ -48,9 +48,21 @@
 
       <div>
         <h3 class="expenses-empty-title">Расчёт ещё не подтверждён</h3>
-        <p class="expenses-empty-text">
-          Проверьте траты и подтвердите расчёт. После этого Анди покажет, кто кому сколько должен.
-        </p>
+        <% if event.last_change_description.present? %>
+          <p class="expenses-empty-text settlements-change-description">
+            <%= event.last_change_description %>
+          </p>
+
+          <% if event.last_change_at.present? %>
+            <p class="settlements-change-time">
+              <%= time_ago_in_russian(event.last_change_at) %>
+            </p>
+          <% end %>
+        <% else %>
+          <p class="expenses-empty-text">
+            Проверьте траты и подтвердите расчёт. После этого Анди покажет, кто кому сколько должен.
+          </p>
+        <% end %>
       </div>
     </div>
 

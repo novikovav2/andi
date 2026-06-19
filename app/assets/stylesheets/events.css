@@ -1069,6 +1069,18 @@ body:has(#confirm_bar .confirm-bar) .fab-button {
     margin-bottom: 28px;
 }
 
+.settlements-change-description {
+    font-weight: 700;
+    color: #475569;
+}
+
+.settlements-change-time {
+    margin: 4px 0 0;
+    color: #94a3b8;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
 .participants-avatar-row {
     display: flex;
     align-items: center;

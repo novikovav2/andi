@@ -474,6 +474,140 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     assert_no_match "Загрузить чек", response.body
   end
 
+  test "creating expense records last event change description" do
+    event = Event.create!(
+      title: "Change reason trip",
+      organizer_token: "expense-create-change-token"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    bob = event.participants.create!(name: "Боб")
+
+    post event_expenses_path(event), params: {
+      expense: {
+        title: "Алкоголь",
+        amount: "1200",
+        payer_id: alice.id,
+        participant_ids: [ alice.id, bob.id ]
+      }
+    }
+
+    assert_redirected_to event_share_path(event.access_token)
+    assert_equal "Добавлена трата «Алкоголь»", event.reload.last_change_description
+    assert event.last_change_at.present?
+  end
+
+  test "updating expense records last event change description" do
+    event = Event.create!(
+      title: "Update change reason trip",
+      organizer_token: "expense-update-change-token"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    bob = event.participants.create!(name: "Боб")
+    expense = event.expenses.create!(
+      title: "Такси",
+      amount_cents: 150_000,
+      payer: alice
+    )
+    expense.expense_shares.create!(participant: alice)
+    expense.expense_shares.create!(participant: bob)
+
+    patch event_expense_path(event, expense), params: {
+      expense: {
+        title: "Такси до дома",
+        amount: "1600",
+        payer_id: alice.id,
+        participant_ids: [ alice.id, bob.id ]
+      }
+    }
+
+    assert_redirected_to event_share_path(event.access_token)
+    assert_equal "Изменена трата «Такси до дома»", event.reload.last_change_description
+    assert event.last_change_at.present?
+  end
+
+  test "deleting expense records last event change description" do
+    event = Event.create!(
+      title: "Delete change reason trip",
+      organizer_token: "expense-delete-change-token"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    expense = event.expenses.create!(
+      title: "Алкоголь",
+      amount_cents: 120_000,
+      payer: alice
+    )
+    expense.expense_shares.create!(participant: alice)
+
+    delete event_expense_path(event, expense)
+
+    assert_redirected_to event_share_path(event.access_token)
+    assert_equal "Удалена трата «Алкоголь»", event.reload.last_change_description
+    assert event.last_change_at.present?
+  end
+
+  test "changed calculation details display in settlements card" do
+    event = Event.create!(
+      title: "Visible change reason trip",
+      organizer_token: "visible-change-token"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    bob = event.participants.create!(name: "Боб")
+
+    post event_expenses_path(event), params: {
+      expense: {
+        title: "Алкоголь",
+        amount: "1200",
+        payer_id: alice.id,
+        participant_ids: [ alice.id, bob.id ]
+      }
+    }
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select ".state-banner-warning" do
+      assert_select ".state-banner-title", "Расчёт изменился"
+      assert_select ".state-banner-text", text: /Проверьте траты перед подтверждением/
+      assert_select ".state-banner-text", text: /Добавлена трата «Алкоголь»/, count: 0
+    end
+
+    assert_select "#settlements" do
+      assert_select ".expenses-empty-title", "Расчёт ещё не подтверждён"
+      assert_select ".settlements-change-description", text: /Добавлена трата «Алкоголь»/
+      assert_select ".settlements-change-time", text: /Только что/
+    end
+    assert_no_match "Translation missing", response.body
+  end
+
+  test "settlements card keeps fallback text without last event change description" do
+    event = Event.create!(
+      title: "Fallback change reason trip",
+      organizer_token: "fallback-change-token"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    expense = event.expenses.create!(
+      title: "Такси",
+      amount_cents: 150_000,
+      payer: alice
+    )
+    expense.expense_shares.create!(participant: alice)
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select ".state-banner-warning" do
+      assert_select ".state-banner-title", "Расчёт изменился"
+      assert_select ".state-banner-text", text: /Проверьте траты перед подтверждением/
+    end
+
+    assert_select "#settlements" do
+      assert_select ".expenses-empty-title", "Расчёт ещё не подтверждён"
+      assert_select ".expenses-empty-text", text: /Проверьте траты и подтвердите расчёт/
+      assert_select ".settlements-change-description", count: 0
+      assert_select ".settlements-change-time", count: 0
+    end
+  end
+
   test "event without expenses displays settlements empty state with add expense action" do
     event = Event.create!(
       title: "Trip without transfer data",

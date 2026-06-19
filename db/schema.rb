@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_18_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_19_000000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -63,6 +63,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_18_000000) do
   create_table "events", force: :cascade do |t|
     t.string "access_token", null: false
     t.datetime "created_at", null: false
+    t.datetime "last_change_at"
+    t.string "last_change_description"
     t.datetime "locked_at"
     t.string "organizer_token"
     t.string "status", default: "draft", null: false

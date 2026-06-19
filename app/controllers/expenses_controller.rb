@@ -28,7 +28,7 @@ class ExpensesController < ApplicationController
 
       sync_participants!
 
-      @event.update!(status: "unconfirmed")
+      record_event_change!("Добавлена трата «#{@expense.title}»")
 
       @participants = @event.participants.order(:created_at)
       @balances = BalanceCalculator.new(@event).call
@@ -82,7 +82,7 @@ class ExpensesController < ApplicationController
 
     sync_participants!
 
-    @event.update!(status: "unconfirmed")
+    record_event_change!("Изменена трата «#{@expense.title}»")
 
     @participants = @event.participants.order(:created_at)
     @balances = BalanceCalculator.new(@event).call
@@ -101,9 +101,11 @@ class ExpensesController < ApplicationController
   end
 
   def destroy
+    expense_title = @expense.title
     flash.now[:notice] = "Трата удалена"
     @expense.destroy!
     @event.mark_unconfirmed!
+    record_event_change!("Удалена трата «#{expense_title}»")
 
     @balances = BalanceCalculator.new(@event).call
 
@@ -143,6 +145,14 @@ class ExpensesController < ApplicationController
     participant_ids.each do |participant_id|
       @expense.expense_shares.find_or_create_by!(participant_id:)
     end
+  end
+
+  def record_event_change!(description)
+    @event.update!(
+      status: "unconfirmed",
+      last_change_description: description,
+      last_change_at: Time.current
+    )
   end
 
   def amount_to_cents(amount)
