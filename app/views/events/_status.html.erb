@@ -1,21 +1,25 @@
 <div id="event_status">
-<% if event.unconfirmed? %>
-  <div class="event-status-row">
-    <span class="event-status-pill event-status-pending">
-      <%= event_status_label(event) %>
-    </span>
-  </div>
-<% end %>
-
 <% if event.unconfirmed? && event.expenses.any? %>
   <div class="state-banner state-banner-warning">
     <div class="state-banner-icon">⚠️</div>
 
     <div>
       <div class="state-banner-title">Расчёт изменился</div>
-      <div class="state-banner-text">
-        Проверьте траты перед подтверждением.
-      </div>
+      <% if event.last_change_description.present? %>
+        <div class="state-banner-text">
+          <%= event.last_change_description %>
+        </div>
+
+        <% if event.last_change_at.present? %>
+          <div class="state-banner-text state-banner-time">
+            <%= time_ago_in_russian(event.last_change_at) %>
+          </div>
+        <% end %>
+      <% else %>
+        <div class="state-banner-text">
+          Проверьте траты перед подтверждением.
+        </div>
+      <% end %>
     </div>
   </div>
 <% end %>

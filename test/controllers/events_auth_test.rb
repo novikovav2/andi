@@ -927,10 +927,16 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     get event_share_path(event.access_token)
 
     assert_response :success
+    assert_select "#event_status" do
+      assert_select ".state-banner-title", "Расчёт изменился"
+      assert_select ".state-banner-text", "Изменена сумма траты «Алкоголь»"
+    end
     assert_select "#settlements" do
       assert_select ".expenses-empty-title", "Расчёт ещё не подтверждён"
-      assert_select ".settlements-change-description", "Изменена сумма траты «Алкоголь»"
+      assert_select ".expenses-empty-text", text: /После подтверждения Анди покажет итоговые переводы/
+      assert_select ".settlements-change-description", count: 0
     end
+    assert_equal 1, response.body.scan("Изменена сумма траты «Алкоголь»").size
   end
 
   test "changing expense payer records last event change description" do
@@ -1118,17 +1124,22 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     get event_share_path(event.access_token)
 
     assert_response :success
+    assert_select "#event_status .event-status-pill", count: 0
+    assert_no_match "Нужно подтвердить", response.body
     assert_select ".state-banner-warning" do
       assert_select ".state-banner-title", "Расчёт изменился"
-      assert_select ".state-banner-text", text: /Проверьте траты перед подтверждением/
-      assert_select ".state-banner-text", text: /Добавлена трата «Алкоголь»/, count: 0
+      assert_select ".state-banner-text", text: /Добавлена трата «Алкоголь»/
+      assert_select ".state-banner-time", text: /Только что/
+      assert_select ".state-banner-text", text: /Проверьте траты перед подтверждением/, count: 0
     end
 
     assert_select "#settlements" do
       assert_select ".expenses-empty-title", "Расчёт ещё не подтверждён"
-      assert_select ".settlements-change-description", text: /Добавлена трата «Алкоголь»/
-      assert_select ".settlements-change-time", text: /Только что/
+      assert_select ".expenses-empty-text", text: /После подтверждения Анди покажет итоговые переводы/
+      assert_select ".settlements-change-description", count: 0
+      assert_select ".settlements-change-time", count: 0
     end
+    assert_equal 1, response.body.scan("Добавлена трата «Алкоголь»").size
     assert_no_match "Translation missing", response.body
   end
 
@@ -1148,14 +1159,16 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     get event_share_path(event.access_token)
 
     assert_response :success
+    assert_select "#event_status .event-status-pill", count: 0
     assert_select ".state-banner-warning" do
       assert_select ".state-banner-title", "Расчёт изменился"
       assert_select ".state-banner-text", text: /Проверьте траты перед подтверждением/
+      assert_select ".state-banner-time", count: 0
     end
 
     assert_select "#settlements" do
       assert_select ".expenses-empty-title", "Расчёт ещё не подтверждён"
-      assert_select ".expenses-empty-text", text: /Проверьте траты и подтвердите расчёт/
+      assert_select ".expenses-empty-text", text: /После подтверждения Анди покажет итоговые переводы/
       assert_select ".settlements-change-description", count: 0
       assert_select ".settlements-change-time", count: 0
     end
@@ -1312,13 +1325,14 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     get event_share_path(event.access_token)
 
     assert_response :success
-    assert_select "#event_status .event-status-pill", "Нужно подтвердить"
+    assert_select "#event_status .event-status-pill", count: 0
+    assert_no_match "Нужно подтвердить", response.body
     assert_select ".state-banner-warning" do
       assert_select ".state-banner-title", "Расчёт изменился"
     end
     assert_select "#settlements" do
       assert_select ".expenses-empty-title", "Расчёт ещё не подтверждён"
-      assert_select ".expenses-empty-text", text: /Проверьте траты и подтвердите расчёт/
+      assert_select ".expenses-empty-text", text: /После подтверждения Анди покажет итоговые переводы/
       assert_select "form[action=?]", event_confirmation_path(event), count: 0
     end
 

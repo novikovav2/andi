@@ -1071,6 +1071,11 @@
     color: #64748b;
 }
 
+.state-banner-time {
+    color: #94a3b8;
+    font-size: 13px;
+}
+
 .event-progress-card {
     margin: 0 0 14px;
     border: 1px solid rgba(226,232,240,0.9);
