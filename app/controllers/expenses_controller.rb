@@ -9,7 +9,7 @@ class ExpensesController < ApplicationController
   end
 
   def create
-    return unless ensure_participants_selected!
+    return unless ensure_valid_shares!
 
     @expense = @event.expenses.new(
       title: expense_params[:title],
@@ -71,14 +71,14 @@ class ExpensesController < ApplicationController
   end
 
   def update
-    return unless ensure_participants_selected!
-
     previous_title = @expense.title
     previous_amount_cents = @expense.amount_cents
     previous_payer_id = @expense.payer_id
     previous_participant_ids = @expense.participant_ids.sort
+    previous_share_weights = expense_share_weights(@expense)
 
-    flash.now[:notice] = "Трата обновлена"
+    return unless ensure_valid_shares!
+
     @expense.update!(
       title: expense_params[:title],
       amount_cents: amount_to_cents(expense_params[:amount]),
@@ -87,12 +87,15 @@ class ExpensesController < ApplicationController
 
     sync_participants!
 
+    flash.now[:notice] = "Трата обновлена"
+
     record_event_change!(
       expense_change_description(
         previous_title:,
         previous_amount_cents:,
         previous_payer_id:,
-        previous_participant_ids:
+        previous_participant_ids:,
+        previous_share_weights:
       )
     )
 
@@ -145,16 +148,18 @@ class ExpensesController < ApplicationController
   end
 
   def expense_params
-    params.require(:expense).permit(:title, :amount, :payer_id, participant_ids: [])
+    params.require(:expense).permit(:title, :amount, :payer_id, :split_mode, participant_ids: [], share_weights: {})
   end
 
   def sync_participants!
-    participant_ids = Array(expense_params[:participant_ids]).reject(&:blank?).map(&:to_i)
+    share_weights = @share_weights || build_share_weights
 
-    @expense.expense_shares.where.not(participant_id: participant_ids).destroy_all
+    @expense.expense_shares.where.not(participant_id: share_weights.keys).destroy_all
 
-    participant_ids.each do |participant_id|
-      @expense.expense_shares.find_or_create_by!(participant_id:)
+    share_weights.each do |participant_id, weight|
+      expense_share = @expense.expense_shares.find_or_initialize_by(participant_id:)
+      expense_share.weight = weight
+      expense_share.save!
     end
   end
 
@@ -162,11 +167,14 @@ class ExpensesController < ApplicationController
     @event.record_change!(description) if description.present?
   end
 
-  def expense_change_description(previous_title:, previous_amount_cents:, previous_payer_id:, previous_participant_ids:)
+  def expense_change_description(previous_title:, previous_amount_cents:, previous_payer_id:, previous_participant_ids:, previous_share_weights:)
     current_participant_ids = @expense.expense_shares.reload.pluck(:participant_id).sort
+    current_share_weights = expense_share_weights(@expense)
 
     if current_participant_ids != previous_participant_ids
       "Изменён состав участников для траты «#{@expense.title}»"
+    elsif current_share_weights != previous_share_weights
+      "Изменены доли для траты «#{@expense.title}»"
     elsif @expense.payer_id != previous_payer_id
       "Изменён плательщик для траты «#{@expense.title}»"
     elsif @expense.amount_cents != previous_amount_cents
@@ -186,21 +194,38 @@ class ExpensesController < ApplicationController
       nil
   end
 
-  def ensure_participants_selected!
-    participant_ids = Array(expense_params[:participant_ids]).reject(&:blank?)
+  def expense_share_weights(expense)
+    expense.expense_shares.reload.each_with_object({}) do |share, weights|
+      weights[share.participant_id] = share.weight.to_d
+    end
+  end
 
-    return true if participant_ids.any?
+  def ensure_valid_shares!
+    @share_weights = build_share_weights
+
+    return true if !invalid_share_weight? && @share_weights.values.any?(&:positive?)
+
+    message =
+      if invalid_share_weight?
+        "Введите неотрицательные количества"
+      elsif quantity_split? && selected_participant_ids.any?
+        "Укажите количество больше 0 хотя бы для одного участника"
+      else
+        "Выберите хотя бы одного участника"
+      end
+
+    @share_weights = nil
 
     @participants = @event.participants.order(:created_at)
 
     respond_to do |format|
       format.html do
         redirect_to event_share_path(@event.access_token),
-                    alert: "Выберите хотя бы одного участника"
+                    alert: message
       end
 
       format.turbo_stream do
-        flash.now[:alert] = "Выберите хотя бы одного участника"
+        flash.now[:alert] = message
 
         render turbo_stream: [
           turbo_stream.replace("flash", partial: "shared/flash")
@@ -209,6 +234,44 @@ class ExpensesController < ApplicationController
     end
 
     false
+  end
+
+  def build_share_weights
+    @invalid_share_weight = false
+
+    participant_ids = selected_participant_ids
+    valid_participant_ids = @event.participants.where(id: participant_ids).ids
+
+    return valid_participant_ids.index_with { BigDecimal("1") } unless quantity_split?
+
+    valid_participant_ids.each_with_object({}) do |participant_id, weights|
+      weight = share_weight_for(participant_id)
+      @invalid_share_weight = true if weight.nil? || weight.negative?
+      weights[participant_id] = weight if weight.present? && weight.positive?
+    end
+  end
+
+  def selected_participant_ids
+    Array(expense_params[:participant_ids]).reject(&:blank?).map(&:to_i)
+  end
+
+  def quantity_split?
+    expense_params[:split_mode] == "quantity"
+  end
+
+  def share_weight_for(participant_id)
+    raw_weight = expense_params.fetch(:share_weights, {}).to_h[participant_id.to_s]
+    weight_to_decimal(raw_weight.presence || "1")
+  end
+
+  def weight_to_decimal(weight)
+    BigDecimal(weight.to_s.strip.gsub(",", "."))
+  rescue ArgumentError
+    nil
+  end
+
+  def invalid_share_weight?
+    @invalid_share_weight
   end
 
   def set_noindex

@@ -11,6 +11,16 @@ class Expense < ApplicationRecord
 
   after_commit :mark_event_unconfirmed
 
+  def weighted_split?
+    expense_shares.any? { |share| share.weight != 1 }
+  end
+
+  def split_weight_labels
+    expense_shares.sort_by(&:created_at).map do |share|
+      share.weight.to_s("F").sub(/\.?0+\z/, "")
+    end
+  end
+
   private
   def mark_event_unconfirmed
     event.update!(status: "unconfirmed") unless event.unconfirmed?

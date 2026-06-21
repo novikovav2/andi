@@ -17,15 +17,24 @@
                     class: "text-slate-400 text-xl" %>
       </div>
 
-      <%= form_with model: [@event, @expense] do |f| %>
+      <%= form_with model: [@event, @expense],
+                    data: { controller: "expense-form" } do |f| %>
         <div class="space-y-4">
 
           <%= f.text_field :title,
+                           data: {
+                             expense_form_target: "name",
+                             action: "input->expense-form#updateButton"
+                           },
                            class: "w-full rounded-xl border border-slate-200 px-4 py-3" %>
 
           <%= f.text_field :amount,
                            value: @expense.amount_cents / 100.0,
                            inputmode: "decimal",
+                           data: {
+                             expense_form_target: "amount",
+                             action: "input->expense-form#updateButton"
+                           },
                            class: "w-full rounded-xl border border-slate-200 px-4 py-3" %>
 
           <div>
@@ -62,7 +71,56 @@
             </div>
           </div>
 
+          <div>
+            <p class="text-sm text-slate-500 mb-2">Как делим?</p>
+
+            <div class="expense-split-mode">
+              <label class="expense-split-mode-option">
+                <%= radio_button_tag "expense[split_mode]",
+                                     "equal",
+                                     !@expense.weighted_split?,
+                                     data: {
+                                       expense_form_target: "splitMode",
+                                       action: "change->expense-form#updateSplitMode"
+                                     } %>
+                <span>Поровну</span>
+              </label>
+
+              <label class="expense-split-mode-option">
+                <%= radio_button_tag "expense[split_mode]",
+                                     "quantity",
+                                     @expense.weighted_split?,
+                                     data: {
+                                       expense_form_target: "splitMode",
+                                       action: "change->expense-form#updateSplitMode"
+                                     } %>
+                <span>По количеству</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="expense-share-weights" data-expense-form-target="quantityFields" <%= "hidden" unless @expense.weighted_split? %>>
+            <p class="text-sm text-slate-500 mb-2">Кто сколько взял / использовал</p>
+
+            <div class="expense-share-weight-list">
+              <% @participants.each do |participant| %>
+                <% share = @expense.expense_shares.find { |expense_share| expense_share.participant_id == participant.id } %>
+
+                <label class="expense-share-weight-row">
+                  <span><%= participant.name %></span>
+                  <%= number_field_tag "expense[share_weights][#{participant.id}]",
+                                       share&.weight&.to_s("F") || "1",
+                                       min: 0,
+                                       step: "0.001",
+                                       inputmode: "decimal",
+                                       class: "expense-share-weight-input" %>
+                </label>
+              <% end %>
+            </div>
+          </div>
+
           <%= f.submit "Сохранить",
+                       data: { expense_form_target: "submit" },
                        class: "w-full rounded-xl bg-blue-500 text-white py-3 font-medium cursor-pointer" %>
         </div>
       <% end %>

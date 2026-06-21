@@ -158,7 +158,9 @@ class ReceiptScansController < ApplicationController
 
   def sync_receipt_expense_participants!(expense, participant_ids)
     @event.participants.where(id: participant_ids).find_each do |participant|
-      expense.expense_shares.find_or_create_by!(participant:)
+      expense.expense_shares.find_or_create_by!(participant:) do |expense_share|
+        expense_share.weight = 1
+      end
     end
   end
 

@@ -20,6 +20,7 @@ class BalanceExplanationsController < ApplicationController
 
     @explanation = BalanceExplainer.new(@event, @from, @to).call
 
+    @raw_debts = @explanation[:raw_debts]
     @rows = @explanation[:consumed_rows]
     @total_consumed_cents = @explanation[:total_consumed_cents]
     @total_paid_cents = @explanation[:total_paid_cents]

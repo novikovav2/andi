@@ -583,6 +583,71 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     assert_select ".expense-card", text: /Пицца/
   end
 
+  test "new expense form defaults to equal split and includes quantity mode fields" do
+    event = Event.create!(
+      title: "Expense split form trip",
+      organizer_token: "expense-split-form-token"
+    )
+    event.participants.create!(name: "Алиса")
+    event.participants.create!(name: "Боб")
+
+    get new_event_expense_path(event)
+
+    assert_response :success
+    assert_select "input[name='expense[split_mode]'][value='equal'][checked]"
+    assert_select "input[name='expense[split_mode]'][value='quantity']"
+    assert_select ".expense-share-weights[hidden]"
+    assert_select "input[name^='expense[share_weights]']", count: 2
+    assert_select "input.expense-share-weight-input[value='1']", count: 2
+  end
+
+  test "weighted expense card shows quantity split label" do
+    event = Event.create!(
+      title: "Weighted card trip",
+      organizer_token: "weighted-card-token"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    bob = event.participants.create!(name: "Боб")
+    expense = event.expenses.create!(
+      title: "Пиво",
+      amount_cents: 100_000,
+      payer: alice
+    )
+    expense.expense_shares.create!(participant: alice, weight: 1)
+    expense.expense_shares.create!(participant: bob, weight: 3)
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select ".expense-card", text: /Пиво/ do
+      assert_select ".expense-meta-secondary", text: /По количеству: 1 \/ 3/
+    end
+  end
+
+  test "weighted expense edit form shows quantity mode with saved weights" do
+    event = Event.create!(
+      title: "Weighted edit form trip",
+      organizer_token: "weighted-edit-form-token"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    bob = event.participants.create!(name: "Боб")
+    expense = event.expenses.create!(
+      title: "Пиво",
+      amount_cents: 100_000,
+      payer: alice
+    )
+    expense.expense_shares.create!(participant: alice, weight: 1)
+    expense.expense_shares.create!(participant: bob, weight: 3)
+
+    get edit_event_expense_path(event, expense)
+
+    assert_response :success
+    assert_select "input[name='expense[split_mode]'][value='quantity'][checked]"
+    assert_select ".expense-share-weights[hidden]", count: 0
+    assert_select "input[name='expense[share_weights][#{alice.id}]'][value='1.0']"
+    assert_select "input[name='expense[share_weights][#{bob.id}]'][value='3.0']"
+  end
+
   test "event without participants hides add expense empty state action" do
     event = Event.create!(
       title: "Trip without participants",
@@ -617,6 +682,128 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     assert_redirected_to event_share_path(event.access_token)
     assert_equal "Добавлена трата «Алкоголь»", event.reload.last_change_description
     assert event.last_change_at.present?
+    assert_equal [ BigDecimal("1"), BigDecimal("1") ],
+                 event.expenses.find_by!(title: "Алкоголь").expense_shares.order(:participant_id).pluck(:weight)
+  end
+
+  test "creating weighted expense stores entered share weights" do
+    event = Event.create!(
+      title: "Weighted create trip",
+      organizer_token: "weighted-create-token"
+    )
+    ivan = event.participants.create!(name: "Иван")
+    petya = event.participants.create!(name: "Петя")
+    sergey = event.participants.create!(name: "Сергей")
+
+    post event_expenses_path(event), params: {
+      expense: {
+        title: "Пиво",
+        amount: "1000",
+        payer_id: ivan.id,
+        split_mode: "quantity",
+        participant_ids: [ ivan.id, petya.id, sergey.id ],
+        share_weights: {
+          ivan.id.to_s => "1",
+          petya.id.to_s => "1",
+          sergey.id.to_s => "8"
+        }
+      }
+    }
+
+    assert_redirected_to event_share_path(event.access_token)
+    expense = event.expenses.find_by!(title: "Пиво")
+    assert_equal(
+      {
+        ivan.id => BigDecimal("1"),
+        petya.id => BigDecimal("1"),
+        sergey.id => BigDecimal("8")
+      },
+      expense.expense_shares.each_with_object({}) { |share, weights| weights[share.participant_id] = share.weight }
+    )
+  end
+
+  test "weighted expense does not create zero weight shares" do
+    event = Event.create!(
+      title: "Weighted zero trip",
+      organizer_token: "weighted-zero-token"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    bob = event.participants.create!(name: "Боб")
+
+    post event_expenses_path(event), params: {
+      expense: {
+        title: "Фрукты",
+        amount: "500",
+        payer_id: alice.id,
+        split_mode: "quantity",
+        participant_ids: [ alice.id, bob.id ],
+        share_weights: {
+          alice.id.to_s => "1",
+          bob.id.to_s => "0"
+        }
+      }
+    }
+
+    assert_redirected_to event_share_path(event.access_token)
+    expense = event.expenses.find_by!(title: "Фрукты")
+    assert_equal [ alice.id ], expense.participant_ids
+    assert_equal [ BigDecimal("1") ], expense.expense_shares.pluck(:weight)
+  end
+
+  test "weighted expense rejects all zero quantities" do
+    event = Event.create!(
+      title: "Weighted all zero trip",
+      organizer_token: "weighted-all-zero-token"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    bob = event.participants.create!(name: "Боб")
+
+    assert_no_difference "Expense.count" do
+      post event_expenses_path(event), params: {
+        expense: {
+          title: "Фрукты",
+          amount: "500",
+          payer_id: alice.id,
+          split_mode: "quantity",
+          participant_ids: [ alice.id, bob.id ],
+          share_weights: {
+            alice.id.to_s => "0",
+            bob.id.to_s => "0"
+          }
+        }
+      }
+    end
+
+    assert_redirected_to event_share_path(event.access_token)
+    assert_equal "Укажите количество больше 0 хотя бы для одного участника", flash[:alert]
+  end
+
+  test "weighted expense rejects negative quantities" do
+    event = Event.create!(
+      title: "Weighted negative trip",
+      organizer_token: "weighted-negative-token"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    bob = event.participants.create!(name: "Боб")
+
+    assert_no_difference "Expense.count" do
+      post event_expenses_path(event), params: {
+        expense: {
+          title: "Фрукты",
+          amount: "500",
+          payer_id: alice.id,
+          split_mode: "quantity",
+          participant_ids: [ alice.id, bob.id ],
+          share_weights: {
+            alice.id.to_s => "1",
+            bob.id.to_s => "-1"
+          }
+        }
+      }
+    end
+
+    assert_redirected_to event_share_path(event.access_token)
+    assert_equal "Введите неотрицательные количества", flash[:alert]
   end
 
   test "renaming expense records last event change description" do
@@ -738,6 +925,43 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
 
     assert_redirected_to event_share_path(event.access_token)
     assert_equal "Изменён состав участников для траты «Алкоголь»", event.reload.last_change_description
+  end
+
+  test "changing expense weights records last event change description and unconfirms event" do
+    event = Event.create!(
+      title: "Weights change reason trip",
+      organizer_token: "expense-weights-change-token",
+      status: "confirmed"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    bob = event.participants.create!(name: "Боб")
+    expense = event.expenses.create!(
+      title: "Пиво",
+      amount_cents: 100_000,
+      payer: alice
+    )
+    expense.expense_shares.create!(participant: alice, weight: 1)
+    expense.expense_shares.create!(participant: bob, weight: 1)
+    event.update!(status: "confirmed")
+
+    patch event_expense_path(event, expense), params: {
+      expense: {
+        title: "Пиво",
+        amount: "1000",
+        payer_id: alice.id,
+        split_mode: "quantity",
+        participant_ids: [ alice.id, bob.id ],
+        share_weights: {
+          alice.id.to_s => "1",
+          bob.id.to_s => "3"
+        }
+      }
+    }
+
+    assert_redirected_to event_share_path(event.access_token)
+    assert_predicate event.reload, :unconfirmed?
+    assert_equal "Изменены доли для траты «Пиво»", event.last_change_description
+    assert_equal [ BigDecimal("1"), BigDecimal("3") ], expense.reload.expense_shares.order(:participant_id).pluck(:weight)
   end
 
   test "deleting expense records last event change description" do
@@ -1289,11 +1513,156 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     )
     from = event.participants.create!(name: "Миша")
     to = event.participants.create!(name: "Оля")
+    expense = event.expenses.create!(
+      title: "Пиво",
+      amount_cents: 80_000,
+      payer: to
+    )
+    expense.expense_shares.create!(participant: from)
+    expense.expense_shares.create!(participant: to)
+    event.settlements.create!(
+      from_participant: from,
+      to_participant: to,
+      amount_cents: 40_000,
+      paid: false
+    )
 
     get balance_explanation_path(event.access_token, from, to)
 
     assert_response :success
     assert_select "a.back-link[href=?]", event_share_path(event.access_token), text: "← К событию"
+    assert_includes response.body, "Анди уменьшает количество переводов"
+    assert_select ".text-xs", text: "Доля в трате"
+    assert_no_match "Доля в переводе", response.body
+  end
+
+  test "balance explanation shows raw equal split debt before optimization" do
+    event = Event.create!(
+      title: "Raw equal split explanation",
+      organizer_token: "raw-equal-split-explanation-token"
+    )
+    aaa = event.participants.create!(name: "AAA")
+    bbb = event.participants.create!(name: "BBB")
+    ccc = event.participants.create!(name: "CCC")
+    ddd = event.participants.create!(name: "DDD")
+    expense = event.expenses.create!(
+      title: "Фрукты",
+      amount_cents: 40_000,
+      payer: ddd
+    )
+    [ aaa, bbb, ccc, ddd ].each do |participant|
+      expense.expense_shares.create!(participant:)
+    end
+    event.settlements.create!(
+      from_participant: aaa,
+      to_participant: ddd,
+      amount_cents: 10_000,
+      paid: false
+    )
+
+    get balance_explanation_path(event.access_token, aaa, ddd)
+
+    assert_response :success
+    assert_select "h4", text: "До взаимозачёта"
+    assert_select "div", text: /AAA → DDD/
+    assert_select "div", text: /за «Фрукты»/
+    assert_select "div", text: /100 ₽/
+  end
+
+  test "balance explanation shows weighted raw debt before optimization" do
+    event = Event.create!(
+      title: "Raw weighted split explanation",
+      organizer_token: "raw-weighted-split-explanation-token"
+    )
+    payer = event.participants.create!(name: "BBB")
+    aaa = event.participants.create!(name: "AAA")
+    petya = event.participants.create!(name: "Петя")
+    expense = event.expenses.create!(
+      title: "Пиво 10 банок",
+      amount_cents: 100_000,
+      payer:
+    )
+    expense.expense_shares.create!(participant: payer, weight: 1)
+    expense.expense_shares.create!(participant: petya, weight: 1)
+    expense.expense_shares.create!(participant: aaa, weight: 8)
+    event.settlements.create!(
+      from_participant: aaa,
+      to_participant: payer,
+      amount_cents: 80_000,
+      paid: false
+    )
+
+    get balance_explanation_path(event.access_token, aaa, payer)
+
+    assert_response :success
+    assert_select "h4", text: "До взаимозачёта"
+    assert_select "div", text: /AAA → BBB/
+    assert_select "div", text: /за «Пиво 10 банок»/
+    assert_select "div", text: /800 ₽/
+    assert_select "div", text: /Разделили по количеству/
+  end
+
+  test "balance explanation shows before and after optimization with active selected transfer" do
+    event = Event.create!(
+      title: "Raw optimized explanation",
+      organizer_token: "raw-optimized-explanation-token"
+    )
+    aaa = event.participants.create!(name: "AAA")
+    bbb = event.participants.create!(name: "BBB")
+    ddd = event.participants.create!(name: "DDD")
+
+    beer = event.expenses.create!(
+      title: "Пиво 10 банок",
+      amount_cents: 80_000,
+      payer: bbb
+    )
+    beer.expense_shares.create!(participant: aaa, weight: 1)
+
+    fruit_from_aaa = event.expenses.create!(
+      title: "Фрукты",
+      amount_cents: 10_000,
+      payer: ddd
+    )
+    fruit_from_aaa.expense_shares.create!(participant: aaa, weight: 1)
+
+    fruit_from_bbb = event.expenses.create!(
+      title: "Фрукты",
+      amount_cents: 10_000,
+      payer: ddd
+    )
+    fruit_from_bbb.expense_shares.create!(participant: bbb, weight: 1)
+
+    event.settlements.create!(
+      from_participant: aaa,
+      to_participant: bbb,
+      amount_cents: 70_000,
+      paid: false
+    )
+    event.settlements.create!(
+      from_participant: aaa,
+      to_participant: ddd,
+      amount_cents: 20_000,
+      paid: false
+    )
+
+    get balance_explanation_path(event.access_token, aaa, bbb)
+
+    assert_response :success
+    assert_select "h3", text: "Как Анди упростил переводы"
+    assert_select "h4", text: "До взаимозачёта"
+    assert_select "h4", text: "После взаимозачёта"
+    assert_select "div", text: /AAA → BBB/
+    assert_select "div", text: /AAA → DDD/
+    assert_select "div", text: /BBB → DDD/
+    assert_select ".settlement-card-active", text: /AAA.*BBB/m do
+      assert_select ".settlement-caption", text: "Выбранный перевод"
+      assert_select ".settlement-amount", text: "700 ₽"
+    end
+    assert_select ".settlement-card", text: /AAA.*DDD/m do
+      assert_select ".settlement-amount", text: "200 ₽"
+    end
+    assert_no_match "Доля в переводе", response.body
+    assert_select ".text-xs", text: "Доля в трате"
   end
 
   test "organizer can open event settings" do

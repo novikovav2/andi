@@ -69,7 +69,7 @@ class ParticipantsController < ApplicationController
     @participants = @event.participants.order(:created_at)
     @participant_form = Participant.new
     @balances = BalanceCalculator.new(@event).call
-    @expenses = @event.expenses.includes(:payer, :participants).order(created_at: :desc)
+    @expenses = @event.expenses.includes(:payer, :participants, :expense_shares).order(created_at: :desc)
 
     respond_to do |format|
       format.html { redirect_to event_share_path(@event.access_token) }
@@ -150,7 +150,7 @@ class ParticipantsController < ApplicationController
     @participants = @event.participants.order(:created_at)
     @participant_form = Participant.new
     @balances = BalanceCalculator.new(@event).call
-    @expenses = @event.expenses.includes(:payer, :participants).order(created_at: :desc)
+    @expenses = @event.expenses.includes(:payer, :participants, :expense_shares).order(created_at: :desc)
 
     respond_to do |format|
       format.html do

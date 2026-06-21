@@ -65,6 +65,52 @@
           </div>
         </div>
 
+        <div>
+          <p class="text-sm text-slate-500 mb-2">Как делим?</p>
+
+          <div class="expense-split-mode">
+            <label class="expense-split-mode-option">
+              <%= radio_button_tag "expense[split_mode]",
+                                   "equal",
+                                   true,
+                                   data: {
+                                     expense_form_target: "splitMode",
+                                     action: "change->expense-form#updateSplitMode"
+                                   } %>
+              <span>Поровну</span>
+            </label>
+
+            <label class="expense-split-mode-option">
+              <%= radio_button_tag "expense[split_mode]",
+                                   "quantity",
+                                   false,
+                                   data: {
+                                     expense_form_target: "splitMode",
+                                     action: "change->expense-form#updateSplitMode"
+                                   } %>
+              <span>По количеству</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="expense-share-weights" data-expense-form-target="quantityFields" hidden>
+          <p class="text-sm text-slate-500 mb-2">Кто сколько взял / использовал</p>
+
+          <div class="expense-share-weight-list">
+            <% participants.each do |participant| %>
+              <label class="expense-share-weight-row">
+                <span><%= participant.name %></span>
+                <%= number_field_tag "expense[share_weights][#{participant.id}]",
+                                     "1",
+                                     min: 0,
+                                     step: "0.001",
+                                     inputmode: "decimal",
+                                     class: "expense-share-weight-input" %>
+              </label>
+            <% end %>
+          </div>
+        </div>
+
         <%= f.submit "Добавить",
                      disabled: true,
                      data: { expense_form_target: "submit" },

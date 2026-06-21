@@ -18,9 +18,15 @@
               Оплатил <%= expense.payer.name %>
             </div>
 
-            <div class="expense-meta-secondary">
-              Разделили между: <%= expense.participants.count %>
-            </div>
+            <% if expense.weighted_split? %>
+              <div class="expense-meta-secondary">
+                По количеству: <%= expense.split_weight_labels.join(" / ") %>
+              </div>
+            <% else %>
+              <div class="expense-meta-secondary">
+                Разделили между: <%= expense.participants.count %>
+              </div>
+            <% end %>
           </div>
         </div>
 

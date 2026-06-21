@@ -42,7 +42,7 @@ class EventsController < ApplicationController
 
     @participants = @event.participants.order(:created_at)
     @expenses = @event.expenses
-                      .includes(:payer, :participants, receipt_scan: { image_attachment: :blob })
+                      .includes(:payer, :participants, :expense_shares, receipt_scan: { image_attachment: :blob })
                       .order(created_at: :desc)
 
     @balances = BalanceCalculator.new(@event).call

@@ -38,18 +38,35 @@ class BalanceCalculator
 
   def participant_balances
     balances = event.participants.index_with(0)
-    event.expenses.includes(:payer, :participants).find_each do |expense|
-      participants = expense.participants.to_a
-      next if participants.empty?
-      share = expense.amount_cents / participants.size
-      remainder = expense.amount_cents % participants.size
-      participants.each_with_index do |participant, index|
-        amount = share + (index < remainder ? 1 : 0)
-        balances[participant] -= amount
+    event.expenses.includes(:payer, expense_shares: :participant).find_each do |expense|
+      shares = expense.expense_shares.select { |share| share.weight.positive? }
+      next if shares.empty?
+
+      split_amounts(expense, shares).each do |share, amount|
+        balances[share.participant] -= amount
       end
       balances[expense.payer] += expense.amount_cents
     end
     balances.transform_keys(&:id)
+  end
+
+  def split_amounts(expense, shares)
+    total_weight = shares.sum(&:weight)
+    return [] unless total_weight.positive?
+
+    weighted_amounts = shares.map do |share|
+      exact_amount = BigDecimal(expense.amount_cents.to_s) * share.weight / total_weight
+      [ share, exact_amount.floor, exact_amount.frac ]
+    end
+
+    remainder = expense.amount_cents - weighted_amounts.sum { |_share, amount, _fraction| amount }
+
+    weighted_amounts
+      .sort_by.with_index { |(_share, _amount, fraction), index| [ -fraction, index ] }
+      .first(remainder)
+      .each { |row| row[1] += 1 }
+
+    weighted_amounts.map { |share, amount, _fraction| [ share, amount ] }
   end
 
   def participant(id)
