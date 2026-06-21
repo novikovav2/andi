@@ -597,8 +597,14 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     assert_select "input[name='expense[split_mode]'][value='equal'][checked]"
     assert_select "input[name='expense[split_mode]'][value='quantity']"
     assert_select ".expense-share-weights[hidden]"
+    assert_select ".expense-share-weights", text: /Сколько досталось каждому/
+    assert_select ".expense-share-weights", text: /Укажите количество или доли/
+    assert_no_match "Кто сколько взял / использовал", response.body
     assert_select "input[name^='expense[share_weights]']", count: 2
     assert_select "input.expense-share-weight-input[value='1']", count: 2
+    assert_select "button.expense-share-weight-stepper[type='button'][aria-label='Уменьшить количество для Алиса'][data-action='click->expense-form#decrementWeight']", text: "−"
+    assert_select "button.expense-share-weight-stepper[type='button'][aria-label='Увеличить количество для Алиса'][data-action='click->expense-form#incrementWeight']", text: "+"
+    assert_select ".expense-share-weight-total", text: "Всего: 2 единицы"
   end
 
   test "weighted expense card shows quantity split label" do
@@ -631,21 +637,77 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     )
     alice = event.participants.create!(name: "Алиса")
     bob = event.participants.create!(name: "Боб")
+    sergey = event.participants.create!(name: "Сергей")
     expense = event.expenses.create!(
       title: "Пиво",
       amount_cents: 100_000,
       payer: alice
     )
-    expense.expense_shares.create!(participant: alice, weight: 1)
-    expense.expense_shares.create!(participant: bob, weight: 3)
+    expense.expense_shares.create!(participant: alice, weight: 7)
+    expense.expense_shares.create!(participant: bob, weight: 1)
+    expense.expense_shares.create!(participant: sergey, weight: 1)
 
     get edit_event_expense_path(event, expense)
 
     assert_response :success
     assert_select "input[name='expense[split_mode]'][value='quantity'][checked]"
     assert_select ".expense-share-weights[hidden]", count: 0
-    assert_select "input[name='expense[share_weights][#{alice.id}]'][value='1.0']"
-    assert_select "input[name='expense[share_weights][#{bob.id}]'][value='3.0']"
+    assert_select ".expense-share-weights", text: /Сколько досталось каждому/
+    assert_select "input[name='expense[share_weights][#{alice.id}]'][value='7']"
+    assert_select "input[name='expense[share_weights][#{bob.id}]'][value='1']"
+    assert_select "input[name='expense[share_weights][#{sergey.id}]'][value='1']"
+    assert_select "button.expense-share-weight-stepper[type='button'][aria-label='Уменьшить количество для Алиса'][data-action='click->expense-form#decrementWeight']", text: "−"
+    assert_select "button.expense-share-weight-stepper[type='button'][aria-label='Увеличить количество для Алиса'][data-action='click->expense-form#incrementWeight']", text: "+"
+    assert_select ".expense-share-weight-fill[style='width: 100%']"
+    assert_select ".expense-share-weight-fill[style='width: 14.29%']", count: 2
+    assert_select ".expense-share-weight-total", text: "Всего: 9 единиц"
+    assert_no_match "7.0", response.body
+    assert_no_match "1.0", response.body
+  end
+
+  test "equal expense edit form keeps equal mode and hides histogram" do
+    event = Event.create!(
+      title: "Equal edit form trip",
+      organizer_token: "equal-edit-form-token"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    bob = event.participants.create!(name: "Боб")
+    expense = event.expenses.create!(
+      title: "Пицца",
+      amount_cents: 50_000,
+      payer: alice
+    )
+    expense.expense_shares.create!(participant: alice, weight: 1)
+    expense.expense_shares.create!(participant: bob, weight: 1)
+
+    get edit_event_expense_path(event, expense)
+
+    assert_response :success
+    assert_select "input[name='expense[split_mode]'][value='equal'][checked]"
+    assert_select ".expense-share-weights[hidden]"
+  end
+
+  test "weighted expense edit form formats fractional weights without trailing zeros" do
+    event = Event.create!(
+      title: "Weighted fractional edit form trip",
+      organizer_token: "weighted-fractional-edit-form-token"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    bob = event.participants.create!(name: "Боб")
+    expense = event.expenses.create!(
+      title: "Сыр",
+      amount_cents: 20_000,
+      payer: alice
+    )
+    expense.expense_shares.create!(participant: alice, weight: 0.5)
+    expense.expense_shares.create!(participant: bob, weight: 1.25)
+
+    get edit_event_expense_path(event, expense)
+
+    assert_response :success
+    assert_select "input[name='expense[share_weights][#{alice.id}]'][value='0.5']"
+    assert_select "input[name='expense[share_weights][#{bob.id}]'][value='1.25']"
+    assert_select ".expense-share-weight-total", text: "Всего: 1.75 единицы"
   end
 
   test "event without participants hides add expense empty state action" do

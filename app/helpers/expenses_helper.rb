@@ -79,7 +79,50 @@ module ExpensesHelper
     preset ? preset[:emoji] : "🛒"
   end
 
+  def format_expense_share_weight(weight)
+    decimal = BigDecimal(weight.to_s)
+    formatted = decimal.to_s("F").sub(/\.?0+\z/, "")
+
+    formatted.presence || "0"
+  end
+
+  def expense_share_total_label(weights)
+    total = weights.sum { |weight| BigDecimal(weight.to_s) }
+    formatted_total = format_expense_share_weight(total)
+    unit = if total.frac.zero?
+             expense_share_unit_label(total.to_i)
+    else
+             "единицы"
+    end
+
+    "#{formatted_total} #{unit}"
+  end
+
+  def expense_share_bar_width(weight, max_weight)
+    weight = BigDecimal(weight.to_s)
+    max_weight = BigDecimal(max_weight.to_s)
+
+    return "0%" unless max_weight.positive?
+
+    percentage = (weight / max_weight) * 100
+    "#{format_expense_share_weight(percentage.round(2))}%"
+  end
+
   private
+
+  def expense_share_unit_label(number)
+    last_two_digits = number % 100
+    return "единиц" if last_two_digits.between?(11, 14)
+
+    case number % 10
+    when 1
+      "единица"
+    when 2..4
+      "единицы"
+    else
+      "единиц"
+    end
+  end
 
   def normalize_expense_text(text)
     text.to_s

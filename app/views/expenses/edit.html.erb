@@ -63,7 +63,12 @@
                 <label class="participant-chip">
                   <%= check_box_tag "expense[participant_ids][]",
                                     participant.id,
-                                    @expense.participant_ids.include?(participant.id) %>
+                                    @expense.participant_ids.include?(participant.id),
+                                    data: {
+                                      expense_form_target: "participantCheckbox",
+                                      participant_id: participant.id,
+                                      action: "change->expense-form#updateQuantityRows"
+                                    } %>
 
                   <span><%= participant.name %></span>
                 </label>
@@ -100,22 +105,63 @@
           </div>
 
           <div class="expense-share-weights" data-expense-form-target="quantityFields" <%= "hidden" unless @expense.weighted_split? %>>
-            <p class="text-sm text-slate-500 mb-2">Кто сколько взял / использовал</p>
+            <p class="text-sm font-semibold text-slate-700">Сколько досталось каждому</p>
+            <p class="text-xs text-slate-500 mt-1 mb-3">
+              Укажите количество или доли. Анди разделит сумму пропорционально.
+            </p>
 
             <div class="expense-share-weight-list">
+              <% share_weights = @participants.map do |participant|
+                   @expense.expense_shares.find { |expense_share| expense_share.participant_id == participant.id }&.weight || 1
+                 end %>
+              <% max_share_weight = share_weights.max || 0 %>
+
               <% @participants.each do |participant| %>
                 <% share = @expense.expense_shares.find { |expense_share| expense_share.participant_id == participant.id } %>
+                <% weight = share&.weight || 1 %>
+                <% formatted_weight = format_expense_share_weight(weight) %>
 
-                <label class="expense-share-weight-row">
-                  <span><%= participant.name %></span>
-                  <%= number_field_tag "expense[share_weights][#{participant.id}]",
-                                       share&.weight&.to_s("F") || "1",
-                                       min: 0,
-                                       step: "0.001",
-                                       inputmode: "decimal",
-                                       class: "expense-share-weight-input" %>
+                <label class="expense-share-weight-row"
+                       data-expense-form-target="quantityRow"
+                       data-participant-id="<%= participant.id %>"
+                       <%= "hidden" unless @expense.participant_ids.include?(participant.id) %>>
+                  <span class="expense-share-weight-name"><%= participant.name %></span>
+                  <span class="expense-share-weight-bar" aria-hidden="true">
+                    <span class="expense-share-weight-fill"
+                          data-expense-form-target="weightFill"
+                          style="width: <%= expense_share_bar_width(weight, max_share_weight) %>"></span>
+                  </span>
+                  <span class="expense-share-weight-control">
+                    <button type="button"
+                            class="expense-share-weight-stepper"
+                            aria-label="Уменьшить количество для <%= participant.name %>"
+                            data-action="click->expense-form#decrementWeight">
+                      −
+                    </button>
+                    <span class="expense-share-weight-value" data-expense-form-target="weightValue"><%= formatted_weight %></span>
+                    <button type="button"
+                            class="expense-share-weight-stepper"
+                            aria-label="Увеличить количество для <%= participant.name %>"
+                            data-action="click->expense-form#incrementWeight">
+                      +
+                    </button>
+                    <%= number_field_tag "expense[share_weights][#{participant.id}]",
+                                         formatted_weight,
+                                         min: 0,
+                                         step: "0.5",
+                                         inputmode: "decimal",
+                                         data: {
+                                           expense_form_target: "weightInput",
+                                           action: "input->expense-form#updateShareBars"
+                                         },
+                                         class: "expense-share-weight-input" %>
+                  </span>
                 </label>
               <% end %>
+            </div>
+
+            <div class="expense-share-weight-total" data-expense-form-target="weightTotal">
+              Всего: <%= expense_share_total_label(share_weights) %>
             </div>
           </div>
 

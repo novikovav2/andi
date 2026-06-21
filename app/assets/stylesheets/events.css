@@ -67,42 +67,148 @@
 .expense-share-weights {
     border: 1px solid #e2e8f0;
     border-radius: 16px;
-    background: #f8fafc;
-    padding: 12px;
+    background:
+            linear-gradient(180deg, rgba(248,250,252,0.98), rgba(241,245,249,0.92));
+    padding: 14px;
 }
 
 .expense-share-weight-list {
     display: grid;
-    gap: 8px;
+    gap: 10px;
 }
 
 .expense-share-weight-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 88px;
+    grid-template-columns: minmax(72px, 1fr) minmax(88px, 1.4fr) auto;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     color: #334155;
     font-size: 14px;
     font-weight: 700;
 }
 
-.expense-share-weight-row span {
+.expense-share-weight-name {
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
 }
 
+.expense-share-weight-bar {
+    display: block;
+    height: 10px;
+    overflow: hidden;
+    border-radius: 9999px;
+    background: #e2e8f0;
+}
+
+.expense-share-weight-fill {
+    display: block;
+    width: 0;
+    height: 100%;
+    min-width: 0;
+    border-radius: inherit;
+    background: #60a5fa;
+}
+
+.expense-share-weight-value {
+    min-width: 28px;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 800;
+    text-align: center;
+}
+
+.expense-share-weight-control {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    min-width: 0;
+}
+
+.expense-share-weight-stepper {
+    display: inline-flex;
+    width: 28px;
+    height: 28px;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #cbd5e1;
+    border-radius: 9999px;
+    background: white;
+    color: #2563eb;
+    font-size: 16px;
+    font-weight: 900;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.expense-share-weight-stepper:hover {
+    background: #eff6ff;
+    border-color: #93c5fd;
+}
+
+.expense-share-weight-stepper:focus-visible {
+    outline: 3px solid rgba(37,99,235,0.18);
+    outline-offset: 2px;
+}
+
 .expense-share-weight-input {
-    width: 88px;
+    width: 58px;
     border: 1px solid #cbd5e1;
     border-radius: 12px;
     background: white;
-    padding: 8px 10px;
+    padding: 7px 8px;
     color: #0f172a;
     font-size: 14px;
     font-weight: 700;
     text-align: right;
+}
+
+.expense-share-weight-input::-webkit-outer-spin-button,
+.expense-share-weight-input::-webkit-inner-spin-button {
+    margin: 0;
+    -webkit-appearance: none;
+}
+
+.expense-share-weight-input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+.expense-share-weight-total {
+    margin-top: 12px;
+    color: #475569;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+@media (max-width: 420px) {
+    .expense-share-weight-row {
+        grid-template-columns: minmax(58px, 0.8fr) minmax(58px, 1fr) auto;
+        gap: 6px;
+        font-size: 13px;
+    }
+
+    .expense-share-weight-control {
+        gap: 4px;
+    }
+
+    .expense-share-weight-stepper {
+        width: 26px;
+        height: 26px;
+        font-size: 15px;
+    }
+
+    .expense-share-weight-value {
+        min-width: 22px;
+        font-size: 12px;
+    }
+
+    .expense-share-weight-input {
+        width: 52px;
+        padding-inline: 6px;
+    }
 }
 
 .receipt-payer-chip input {
