@@ -24,6 +24,12 @@ module EventRefreshable
       ),
 
       turbo_stream.replace(
+        "event_progress",
+        partial: "events/progress_card",
+        locals: { event: }
+      ),
+
+      turbo_stream.replace(
         "participants",
         partial: "events/participants",
         locals: {

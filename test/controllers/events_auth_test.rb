@@ -786,6 +786,105 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     end
   end
 
+  test "new event displays progress card without creation step and participants as current step" do
+    event = Event.create!(
+      title: "Fresh progress trip",
+      organizer_token: "fresh-progress-token"
+    )
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#event_progress" do
+      assert_select ".event-progress-title", "📋 Что осталось сделать"
+      assert_select ".event-progress-item", text: /Создать мероприятие/, count: 0
+      assert_select ".event-progress-item-current", text: /👉\s*Добавить участников/
+      assert_select ".event-progress-item-pending", text: /⬜\s*Добавить траты/
+      assert_select ".event-progress-item-pending", text: /⬜\s*Подтвердить расчёт/
+      assert_select ".event-progress-item-pending", text: /⬜\s*Выполнить переводы/
+    end
+    assert_select "#event_status .event-status-pill", count: 0
+    assert_select "#event_status .state-banner", count: 0
+    assert_no_match "Черновик", response.body
+  end
+
+  test "event progress marks participants step completed" do
+    event = Event.create!(
+      title: "Participants progress trip",
+      organizer_token: "participants-progress-token"
+    )
+    event.participants.create!(name: "Катя")
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#event_progress" do
+      assert_select ".event-progress-item-done", text: /✅\s*Добавить участников/
+      assert_select ".event-progress-item-current", text: /👉\s*Добавить траты/
+      assert_select ".event-progress-item-pending", text: /⬜\s*Подтвердить расчёт/
+    end
+  end
+
+  test "event progress marks confirmation as current step when expenses exist" do
+    event = Event.create!(
+      title: "Expenses progress trip",
+      organizer_token: "expenses-progress-token"
+    )
+    payer = event.participants.create!(name: "Катя")
+    expense = event.expenses.create!(
+      title: "Кофе",
+      amount_cents: 12_000,
+      payer:
+    )
+    expense.expense_shares.create!(participant: payer)
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#event_progress" do
+      assert_select ".event-progress-item-done", text: /✅\s*Добавить участников/
+      assert_select ".event-progress-item-done", text: /✅\s*Добавить траты/
+      assert_select ".event-progress-item-current", text: /👉\s*Подтвердить расчёт/
+      assert_select ".event-progress-item-pending", text: /⬜\s*Выполнить переводы/
+    end
+  end
+
+  test "event progress marks transfers as current step when confirmed calculation has unpaid settlements" do
+    event = Event.create!(
+      title: "Confirmed progress trip",
+      organizer_token: "confirmed-progress-token",
+      status: "confirmed"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    bob = event.participants.create!(name: "Боб")
+    expense = event.expenses.create!(
+      title: "Пицца",
+      amount_cents: 20_000,
+      payer: alice
+    )
+    expense.expense_shares.create!(participant: alice)
+    expense.expense_shares.create!(participant: bob)
+    event.settlements.create!(
+      from_participant: bob,
+      to_participant: alice,
+      amount_cents: 10_000,
+      paid: false
+    )
+    event.update!(status: "confirmed")
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#event_progress" do
+      assert_select ".event-progress-title", "📋 Что осталось сделать"
+      assert_select ".event-progress-item-done", text: /✅\s*Подтвердить расчёт/
+      assert_select ".event-progress-item-current", text: /👉\s*Выполнить переводы/
+    end
+    assert_select "#event_status .event-status-pill", count: 0
+    assert_select "#event_status .state-banner-success", count: 0
+    assert_no_match "Расчёт подтверждён", response.body
+  end
+
   test "unconfirmed event with expenses displays settlement confirmation state" do
     event = Event.create!(
       title: "Needs confirmation trip",
@@ -804,6 +903,10 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     get event_share_path(event.access_token)
 
     assert_response :success
+    assert_select "#event_status .event-status-pill", "Нужно подтвердить"
+    assert_select ".state-banner-warning" do
+      assert_select ".state-banner-title", "Расчёт изменился"
+    end
     assert_select "#settlements" do
       assert_select ".expenses-empty-title", "Расчёт ещё не подтверждён"
       assert_select ".expenses-empty-text", text: /Проверьте траты и подтвердите расчёт/
@@ -840,6 +943,9 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_select "#confirm_bar .confirm-bar", count: 0
+    assert_select "#event_status .event-status-pill", count: 0
+    assert_select "#event_status .state-banner-success", count: 0
+    assert_select "#event_status .state-banner-title", text: "Расчёт подтверждён", count: 0
     assert_select "#settlements" do
       assert_select ".settlement-card", text: /Боб/
       assert_select ".settlement-card", text: /Алиса/
@@ -930,6 +1036,12 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
       assert_select ".expenses-empty-text", text: /Сейчас никто никому ничего не должен/
       assert_select ".settlement-card", count: 0
     end
+    assert_select "#event_progress" do
+      assert_select ".event-progress-title", "📋 Что осталось сделать"
+      assert_select ".event-progress-item-done", text: /✅\s*Всё поделено/
+      assert_select ".event-progress-item-pending", count: 0
+      assert_select ".event-progress-item-current", count: 0
+    end
     assert_no_match "Пока нечего переводить", response.body
   end
 
@@ -966,6 +1078,44 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     end
     assert_no_match "Пока нечего переводить", response.body
     assert_no_match "Всё уже поделено", response.body
+  end
+
+  test "event progress marks completed paid transfers" do
+    event = Event.create!(
+      title: "Paid progress trip",
+      organizer_token: "paid-progress-token",
+      status: "settled"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    bob = event.participants.create!(name: "Боб")
+    expense = event.expenses.create!(
+      title: "Пицца",
+      amount_cents: 20_000,
+      payer: alice
+    )
+    expense.expense_shares.create!(participant: alice)
+    expense.expense_shares.create!(participant: bob)
+    event.settlements.create!(
+      from_participant: bob,
+      to_participant: alice,
+      amount_cents: 10_000,
+      paid: true
+    )
+    event.update!(status: "settled")
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#event_progress" do
+      assert_select ".event-progress-title", "🎉 Мероприятие завершено"
+      assert_select ".event-progress-summary", "Все переводы отмечены как оплаченные."
+      assert_select ".event-progress-list", count: 0
+      assert_select ".event-progress-item", count: 0
+    end
+    assert_equal 1, response.body.scan("Мероприятие завершено").size
+    assert_select "#event_status .event-status-pill", count: 0
+    assert_select "#event_status .state-banner-success", count: 0
+    assert_no_match "Событие завершено", response.body
   end
 
   test "unknown event token returns not found" do

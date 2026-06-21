@@ -5,6 +5,7 @@
 
 
         <%= render "events/header", event: @event, participants: @participants %>
+        <%= render "events/progress_card", event: @event %>
         <%= render "events/status", event: @event %>
         <%= render "events/account_prompt", event: @event %>
         <%= render "events/event_photos_link", event: @event %>

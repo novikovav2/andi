@@ -1,0 +1,27 @@
+<div id="event_progress">
+  <% steps = event_progress_steps(event) %>
+  <% complete = event_progress_completed?(event) %>
+
+  <section class="event-progress-card" aria-labelledby="event-progress-title">
+    <h2 id="event-progress-title" class="event-progress-title">
+      <%= complete ? "🎉 Мероприятие завершено" : "📋 Что осталось сделать" %>
+    </h2>
+
+    <% if complete %>
+      <p class="event-progress-summary">
+        Все переводы отмечены как оплаченные.
+      </p>
+    <% else %>
+      <ul class="event-progress-list">
+        <% steps.each do |step| %>
+          <li class="event-progress-item event-progress-item-<%= step[:status] %>">
+            <span class="event-progress-marker" aria-hidden="true">
+              <%= { done: "✅", current: "👉", pending: "⬜" }.fetch(step[:status]) %>
+            </span>
+            <span><%= step[:label] %></span>
+          </li>
+        <% end %>
+      </ul>
+    <% end %>
+  </section>
+</div>
