@@ -5,6 +5,10 @@ class ParticipantsController < ApplicationController
 
   def create
     participant = @event.participants.create!(participant_params)
+    @event.record_change!(
+      "Добавлен участник «#{participant.name}»",
+      affects_calculation: @event.expenses.any?
+    )
 
     @participants = @event.participants.order(:created_at)
     @participant = Participant.new
@@ -47,6 +51,7 @@ class ParticipantsController < ApplicationController
                         .sort
 
     changed_participation = old_expense_ids != new_expense_ids
+    changed_expense_ids = (old_expense_ids | new_expense_ids) - (old_expense_ids & new_expense_ids)
     @event.expenses.find_each do |expense|
       share = expense.expense_shares.find_by(participant: @participant)
       if new_expense_ids.include?(expense.id)
@@ -56,7 +61,10 @@ class ParticipantsController < ApplicationController
       end
     end
 
-    @event.mark_unconfirmed! if changed_participation
+    if changed_participation
+      changed_expense = @event.expenses.find_by(id: changed_expense_ids.first)
+      @event.record_change!("Изменён состав участников для траты «#{changed_expense&.title || 'без названия'}»")
+    end
 
     @participants = @event.participants.order(:created_at)
     @participant_form = Participant.new
@@ -130,11 +138,14 @@ class ParticipantsController < ApplicationController
     end
 
     @event.settlements.destroy_all
-    @event.update!(status: "unconfirmed", locked_at: nil) if @event.expenses.any?
+    participant_name = @participant.name
 
     @participant.destroy!
 
-    @event.mark_unconfirmed!
+    @event.record_change!(
+      "Удалён участник «#{participant_name}»",
+      affects_calculation: @event.expenses.any?
+    )
 
     @participants = @event.participants.order(:created_at)
     @participant_form = Participant.new

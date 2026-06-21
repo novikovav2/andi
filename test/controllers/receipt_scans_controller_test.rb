@@ -450,6 +450,7 @@ class ReceiptScansControllerTest < ActionDispatch::IntegrationTest
     assert_equal receipt_scan, expense.receipt_scan
     assert_equal @event.participants.pluck(:id).sort, expense.participant_ids.sort
     assert_equal 2, receipt_scan.reload.created_expenses_count
+    assert_equal "Добавлено 2 траты из чека", @event.reload.last_change_description
   end
 
   test "confirm creates expense shares only for selected participants" do
@@ -478,6 +479,7 @@ class ReceiptScansControllerTest < ActionDispatch::IntegrationTest
     assert_equal [ @friend.id ], expense.participant_ids
     assert_equal receipt_scan, expense.receipt_scan
     assert_equal 1, receipt_scan.reload.created_expenses_count
+    assert_equal "Добавлена трата из чека", @event.reload.last_change_description
   end
 
   test "confirm does not create expenses without payer" do

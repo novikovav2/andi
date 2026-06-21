@@ -29,13 +29,22 @@ class Event < ApplicationRecord
   before_validation :set_access_token, on: :create
 
   def mark_unconfirmed!
-    settlements.destroy_all
+    record_change!(nil)
+  end
 
-    if expenses.none?
-      update!(status: "draft", locked_at: nil)
-    else
-      update!(status: "unconfirmed", locked_at: nil)
+  def record_change!(description, affects_calculation: true)
+    attributes = {
+      last_change_description: description.presence || last_change_description,
+      last_change_at: description.present? ? Time.current : last_change_at
+    }
+
+    if affects_calculation
+      settlements.destroy_all
+      attributes[:status] = expenses.none? ? "draft" : "unconfirmed"
+      attributes[:locked_at] = nil
     end
+
+    update!(attributes)
   end
 
   def photos_enabled?

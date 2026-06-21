@@ -496,7 +496,7 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     assert event.last_change_at.present?
   end
 
-  test "updating expense records last event change description" do
+  test "renaming expense records last event change description" do
     event = Event.create!(
       title: "Update change reason trip",
       organizer_token: "expense-update-change-token"
@@ -514,15 +514,107 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     patch event_expense_path(event, expense), params: {
       expense: {
         title: "Такси до дома",
-        amount: "1600",
+        amount: "1500",
         payer_id: alice.id,
         participant_ids: [ alice.id, bob.id ]
       }
     }
 
     assert_redirected_to event_share_path(event.access_token)
-    assert_equal "Изменена трата «Такси до дома»", event.reload.last_change_description
+    assert_equal "Переименована трата «Такси» → «Такси до дома»", event.reload.last_change_description
     assert event.last_change_at.present?
+  end
+
+  test "changing expense amount records last event change description" do
+    event = Event.create!(
+      title: "Amount change reason trip",
+      organizer_token: "expense-amount-change-token"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    bob = event.participants.create!(name: "Боб")
+    expense = event.expenses.create!(
+      title: "Алкоголь",
+      amount_cents: 120_000,
+      payer: alice
+    )
+    expense.expense_shares.create!(participant: alice)
+    expense.expense_shares.create!(participant: bob)
+
+    patch event_expense_path(event, expense), params: {
+      expense: {
+        title: "Алкоголь",
+        amount: "1500",
+        payer_id: alice.id,
+        participant_ids: [ alice.id, bob.id ]
+      }
+    }
+
+    assert_redirected_to event_share_path(event.access_token)
+    assert_equal "Изменена сумма траты «Алкоголь»", event.reload.last_change_description
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#settlements" do
+      assert_select ".expenses-empty-title", "Расчёт ещё не подтверждён"
+      assert_select ".settlements-change-description", "Изменена сумма траты «Алкоголь»"
+    end
+  end
+
+  test "changing expense payer records last event change description" do
+    event = Event.create!(
+      title: "Payer change reason trip",
+      organizer_token: "expense-payer-change-token"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    bob = event.participants.create!(name: "Боб")
+    expense = event.expenses.create!(
+      title: "Алкоголь",
+      amount_cents: 120_000,
+      payer: alice
+    )
+    expense.expense_shares.create!(participant: alice)
+    expense.expense_shares.create!(participant: bob)
+
+    patch event_expense_path(event, expense), params: {
+      expense: {
+        title: "Алкоголь",
+        amount: "1200",
+        payer_id: bob.id,
+        participant_ids: [ alice.id, bob.id ]
+      }
+    }
+
+    assert_redirected_to event_share_path(event.access_token)
+    assert_equal "Изменён плательщик для траты «Алкоголь»", event.reload.last_change_description
+  end
+
+  test "changing expense participants records last event change description" do
+    event = Event.create!(
+      title: "Shares change reason trip",
+      organizer_token: "expense-shares-change-token"
+    )
+    alice = event.participants.create!(name: "Алиса")
+    bob = event.participants.create!(name: "Боб")
+    expense = event.expenses.create!(
+      title: "Алкоголь",
+      amount_cents: 120_000,
+      payer: alice
+    )
+    expense.expense_shares.create!(participant: alice)
+    expense.expense_shares.create!(participant: bob)
+
+    patch event_expense_path(event, expense), params: {
+      expense: {
+        title: "Алкоголь",
+        amount: "1200",
+        payer_id: alice.id,
+        participant_ids: [ alice.id ]
+      }
+    }
+
+    assert_redirected_to event_share_path(event.access_token)
+    assert_equal "Изменён состав участников для траты «Алкоголь»", event.reload.last_change_description
   end
 
   test "deleting expense records last event change description" do
@@ -543,6 +635,58 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     assert_redirected_to event_share_path(event.access_token)
     assert_equal "Удалена трата «Алкоголь»", event.reload.last_change_description
     assert event.last_change_at.present?
+  end
+
+  test "creating participant records last event change description" do
+    event = Event.create!(
+      title: "Participant create change reason trip",
+      organizer_token: "participant-create-change-token",
+      status: "confirmed"
+    )
+    payer = event.participants.create!(name: "Алиса")
+    expense = event.expenses.create!(
+      title: "Пицца",
+      amount_cents: 120_000,
+      payer:
+    )
+    expense.expense_shares.create!(participant: payer)
+    event.update!(status: "confirmed")
+
+    post event_participants_path(event), params: {
+      participant: {
+        name: "Саша"
+      }
+    }
+
+    assert_redirected_to event_share_path(event.access_token)
+    assert_equal "Добавлен участник «Саша»", event.reload.last_change_description
+    assert_predicate event, :unconfirmed?
+  end
+
+  test "deleting participant records last event change description" do
+    user = create_user
+    event = user.events.create!(
+      title: "Participant delete change reason trip",
+      organizer_token: "participant-delete-change-token",
+      status: "confirmed"
+    )
+    payer = event.participants.create!(name: "Алиса")
+    participant = event.participants.create!(name: "Саша")
+    expense = event.expenses.create!(
+      title: "Пицца",
+      amount_cents: 120_000,
+      payer:
+    )
+    expense.expense_shares.create!(participant: payer)
+    expense.expense_shares.create!(participant:)
+    event.update!(status: "confirmed")
+    sign_in_as(user)
+
+    delete event_participant_path(event, participant)
+
+    assert_redirected_to event_share_path(event.access_token)
+    assert_equal "Удалён участник «Саша»", event.reload.last_change_description
+    assert_predicate event, :unconfirmed?
   end
 
   test "changed calculation details display in settlements card" do

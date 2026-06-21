@@ -74,6 +74,7 @@ class ReceiptScansController < ApplicationController
     end
 
     @receipt_scan.update!(created_expenses_count: created_expenses.count)
+    @event.record_change!(receipt_expenses_change_description(created_expenses.count))
 
     redirect_to event_share_path(@event.access_token), notice: "Позиции из чека добавлены"
   end
@@ -159,6 +160,12 @@ class ReceiptScansController < ApplicationController
     @event.participants.where(id: participant_ids).find_each do |participant|
       expense.expense_shares.find_or_create_by!(participant:)
     end
+  end
+
+  def receipt_expenses_change_description(count)
+    return "Добавлена трата из чека" if count == 1
+
+    "Добавлено #{count} #{helpers.russian_plural(count, 'трата', 'траты', 'трат')} из чека"
   end
 
   def selected_participant_ids(item)

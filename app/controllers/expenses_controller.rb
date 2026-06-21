@@ -73,6 +73,11 @@ class ExpensesController < ApplicationController
   def update
     return unless ensure_participants_selected!
 
+    previous_title = @expense.title
+    previous_amount_cents = @expense.amount_cents
+    previous_payer_id = @expense.payer_id
+    previous_participant_ids = @expense.participant_ids.sort
+
     flash.now[:notice] = "Трата обновлена"
     @expense.update!(
       title: expense_params[:title],
@@ -82,7 +87,14 @@ class ExpensesController < ApplicationController
 
     sync_participants!
 
-    record_event_change!("Изменена трата «#{@expense.title}»")
+    record_event_change!(
+      expense_change_description(
+        previous_title:,
+        previous_amount_cents:,
+        previous_payer_id:,
+        previous_participant_ids:
+      )
+    )
 
     @participants = @event.participants.order(:created_at)
     @balances = BalanceCalculator.new(@event).call
@@ -104,7 +116,6 @@ class ExpensesController < ApplicationController
     expense_title = @expense.title
     flash.now[:notice] = "Трата удалена"
     @expense.destroy!
-    @event.mark_unconfirmed!
     record_event_change!("Удалена трата «#{expense_title}»")
 
     @balances = BalanceCalculator.new(@event).call
@@ -148,11 +159,21 @@ class ExpensesController < ApplicationController
   end
 
   def record_event_change!(description)
-    @event.update!(
-      status: "unconfirmed",
-      last_change_description: description,
-      last_change_at: Time.current
-    )
+    @event.record_change!(description) if description.present?
+  end
+
+  def expense_change_description(previous_title:, previous_amount_cents:, previous_payer_id:, previous_participant_ids:)
+    current_participant_ids = @expense.expense_shares.reload.pluck(:participant_id).sort
+
+    if current_participant_ids != previous_participant_ids
+      "Изменён состав участников для траты «#{@expense.title}»"
+    elsif @expense.payer_id != previous_payer_id
+      "Изменён плательщик для траты «#{@expense.title}»"
+    elsif @expense.amount_cents != previous_amount_cents
+      "Изменена сумма траты «#{@expense.title}»"
+    elsif @expense.title != previous_title
+      "Переименована трата «#{previous_title}» → «#{@expense.title}»"
+    end
   end
 
   def amount_to_cents(amount)
