@@ -1142,14 +1142,63 @@ body:has(#confirm_bar .confirm-bar) .fab-button {
     line-height: 1.4;
 }
 
-.participants-avatar-row {
+.participants-card {
+    margin: 0 0 22px;
+    border: 1px solid rgba(226,232,240,0.92);
+    border-radius: 20px;
+    background:
+            linear-gradient(180deg, rgba(255,255,255,0.98), rgba(248,250,252,0.96));
+    padding: 16px;
+    box-shadow:
+            0 1px 2px rgba(15,23,42,0.03),
+            0 10px 24px rgba(15,23,42,0.04);
+}
+
+.participants-card-header {
     display: flex;
     align-items: center;
-    margin-bottom: 22px;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.participants-card-title {
+    margin: 0;
+    color: #0f172a;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0;
+}
+
+.participants-empty-state {
+    margin-bottom: 12px;
+    border-radius: 16px;
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    padding: 14px;
+}
+
+.participants-empty-title {
+    margin: 0;
+    color: #334155;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.participants-empty-text {
+    margin: 4px 0 0;
+    color: #64748b;
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.participants-avatar-row {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    margin-bottom: 14px;
     max-width: 100%;
-    overflow-x: auto;
-    overflow-y: visible;
-    padding: 4px 12px 10px 4px;
+    overflow: hidden;
+    padding: 4px 4px 8px;
 
     -webkit-overflow-scrolling: touch;
 }
@@ -1164,6 +1213,10 @@ body:has(#confirm_bar .confirm-bar) .fab-button {
 
 .participants-avatar-row > *:last-child {
     margin-right: 12px;
+}
+
+.participants-avatar-row .participants-overflow-link {
+    margin-left: 4px;
 }
 
 .confirm-overlay {
@@ -1864,21 +1917,60 @@ body:has(#confirm_bar .confirm-bar) .fab-button {
 }
 .participant-form {
     display: flex;
-    flex-direction: column;
-
-    gap: 12px;
-
+    align-items: center;
+    gap: 10px;
     width: 100%;
 }
 
-.participant-form input {
+.participant-name-input {
+    flex: 1 1 auto;
     width: 100%;
     min-width: 0;
+    border: 1px solid #cbd5e1;
+    border-radius: 14px;
+    background: white;
+    padding: 10px 12px;
+    color: #0f172a;
+    font-size: 14px;
+    font-weight: 600;
+    outline: none;
 }
 
-.participant-form button {
-    width: 100%;
-    flex-shrink: 0;
+.participant-name-input::placeholder {
+    color: #94a3b8;
+    font-weight: 500;
+}
+
+.participant-name-input:focus {
+    border-color: #93c5fd;
+    box-shadow: 0 0 0 3px rgba(147,197,253,0.24);
+}
+
+.participant-submit {
+    flex: 0 0 auto;
+    border: 1px solid #bfdbfe;
+    border-radius: 14px;
+    background: #dbeafe;
+    padding: 10px 14px;
+    color: #1d4ed8;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.participant-submit:hover {
+    background: #bfdbfe;
+}
+
+@media (max-width: 420px) {
+    .participant-form {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .participant-submit {
+        align-self: flex-start;
+    }
 }
 
 .toast {

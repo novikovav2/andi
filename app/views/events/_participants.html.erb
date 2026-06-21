@@ -1,17 +1,15 @@
 <div id="participants">
-<div class="participants-section">
-  <div class="flex items-center justify-between mb-3">
-    <div>
-      <h2 class="text-sm font-medium text-slate-400 uppercase tracking-wide">
-        Участники
-      </h2>
-    </div>
-
+<div class="participants-section participants-card">
+  <div class="participants-card-header">
+    <h2 class="participants-card-title">
+      Участники
+    </h2>
   </div>
 
   <% if participants.any? %>
     <div class="participants-avatar-row">
-      <% participants.limit(5).each do |participant_item| %>
+      <% visible_participants_count = participants.count > 6 ? 5 : 6 %>
+      <% participants.limit(visible_participants_count).each do |participant_item| %>
 
         <div class="relative group">
           <%= link_to edit_event_participant_path(event, participant_item),
@@ -26,20 +24,20 @@
 
       <% end %>
 
-      <% if participants.count > 5 %>
-        <%= link_to "+#{participants.count - 5}",
+      <% if participants.count > visible_participants_count %>
+        <%= link_to "+#{participants.count - visible_participants_count}",
                     event_participants_sheet_path(event),
                     data: { turbo_frame: "modal" },
-                    class: "ml-2 flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-500 border-2 border-white" %>
+                    class: "participants-overflow-link flex h-11 w-11 items-center justify-center rounded-full bg-slate-100 text-sm font-semibold text-slate-500 border-2 border-white" %>
       <% end %>
     </div>
   <% else %>
-    <div class="rounded-2xl bg-slate-50 p-5 text-center">
-      <p class="font-medium text-slate-700">
+    <div class="participants-empty-state">
+      <p class="participants-empty-title">
         Участников пока нет
       </p>
 
-      <p class="text-sm text-slate-400 mt-1">
+      <p class="participants-empty-text">
         Добавьте людей, чтобы начать делить траты.
       </p>
     </div>
@@ -47,10 +45,10 @@
   <%= form_with model: [event, participant_form], class: "participant-form" do |f| %>
     <%= f.text_field :name,
                      placeholder: "Имя участника",
-                     class: "flex-1 rounded-xl border border-slate-200 px-4 py-3" %>
+                     class: "participant-name-input" %>
 
     <%= f.submit "Добавить",
-                 class: "rounded-xl bg-blue-500 text-white px-4 py-3 font-medium" %>
+                 class: "participant-submit" %>
   <% end %>
 </div>
 </div>

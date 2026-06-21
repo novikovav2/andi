@@ -306,6 +306,129 @@ class EventsAuthTest < ActionDispatch::IntegrationTest
     assert_includes response.body, new_event_receipt_scan_path(event, access_token: event.access_token)
   end
 
+  test "new event displays participants card with empty state and add form" do
+    event = Event.create!(
+      title: "Participants empty card trip",
+      organizer_token: "participants-empty-card-token"
+    )
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#participants .participants-card" do
+      assert_select ".participants-card-title", "Участники"
+      assert_select ".participants-empty-title", "Участников пока нет"
+      assert_select ".participants-empty-text", "Добавьте людей, чтобы начать делить траты."
+      assert_select "form.participant-form[action=?]", event_participants_path(event) do
+        assert_select "input.participant-name-input[name='participant[name]']"
+        assert_select "input.participant-submit[type='submit'][value='Добавить']"
+      end
+    end
+  end
+
+  test "adding participant refreshes participants card and progress card" do
+    event = Event.create!(
+      title: "Participants refresh card trip",
+      organizer_token: "participants-refresh-card-token"
+    )
+
+    post event_participants_path(event),
+         params: { participant: { name: "Катя" } },
+         as: :turbo_stream
+
+    assert_response :success
+    participant = event.participants.find_by!(name: "Катя")
+
+    assert_select "turbo-stream[action='replace'][target='participants']"
+    assert_select "turbo-stream[action='replace'][target='event_progress']"
+    assert_includes response.body, edit_event_participant_path(event, participant)
+    assert_includes response.body, "participant-form"
+    assert_no_match "Участников пока нет", response.body
+  end
+
+  test "participants card shows all five participant avatars" do
+    event = Event.create!(
+      title: "Five participants trip",
+      organizer_token: "five-participants-token"
+    )
+    participants = 5.times.map { |index| event.participants.create!(name: "Участник #{index + 1}") }
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#participants .participants-avatar-row" do
+      participants.each do |participant|
+        assert_select "a[href=?]", edit_event_participant_path(event, participant)
+      end
+      assert_select "a.participants-overflow-link", count: 0
+      assert_select "form.participant-form", count: 0
+    end
+    assert_select "#participants form.participant-form"
+  end
+
+  test "participants card shows all six participant avatars" do
+    event = Event.create!(
+      title: "Six participants trip",
+      organizer_token: "six-participants-token"
+    )
+    participants = 6.times.map { |index| event.participants.create!(name: "Участник #{index + 1}") }
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#participants .participants-avatar-row" do
+      participants.each do |participant|
+        assert_select "a[href=?]", edit_event_participant_path(event, participant)
+      end
+      assert_select "a.participants-overflow-link", count: 0
+    end
+    assert_select "#participants form.participant-form"
+  end
+
+  test "participants card shows five avatars and overflow link for seven participants" do
+    event = Event.create!(
+      title: "Seven participants trip",
+      organizer_token: "seven-participants-token"
+    )
+    participants = 7.times.map { |index| event.participants.create!(name: "Участник #{index + 1}") }
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#participants .participants-avatar-row" do
+      participants.first(5).each do |participant|
+        assert_select "a[href=?]", edit_event_participant_path(event, participant)
+      end
+      participants.last(2).each do |participant|
+        assert_select "a[href=?]", edit_event_participant_path(event, participant), count: 0
+      end
+      assert_select "a.participants-overflow-link[href=?]", event_participants_sheet_path(event), text: "+2"
+    end
+    assert_select "#participants form.participant-form"
+  end
+
+  test "participants card shows five avatars and overflow link for thirteen participants" do
+    event = Event.create!(
+      title: "Thirteen participants trip",
+      organizer_token: "thirteen-participants-token"
+    )
+    participants = 13.times.map { |index| event.participants.create!(name: "Участник #{index + 1}") }
+
+    get event_share_path(event.access_token)
+
+    assert_response :success
+    assert_select "#participants .participants-avatar-row" do
+      participants.first(5).each do |participant|
+        assert_select "a[href=?]", edit_event_participant_path(event, participant)
+      end
+      participants.drop(5).each do |participant|
+        assert_select "a[href=?]", edit_event_participant_path(event, participant), count: 0
+      end
+      assert_select "a.participants-overflow-link[href=?]", event_participants_sheet_path(event), text: "+8"
+    end
+    assert_select "#participants form.participant-form"
+  end
+
   test "event show does not display separate receipt scans block" do
     user = create_user(plan: "pro")
     event = Event.create!(
